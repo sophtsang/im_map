@@ -15,7 +15,7 @@ app = Flask(__name__)
 CORS(app)
 
 INPUT_DIRS = ""
-API_KEY = "AIzaSyAhKtmL9NcWLfryjOzZ7HOVVxxNcQF_ZEI"
+
 
 @app.route('/get_markers', methods=["POST"])
 def get_data():
