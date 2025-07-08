@@ -1,0 +1,45 @@
+@font-face {
+  font-family: 'PressStart2P';
+  src: url('fonts/PressStart2P-Regular.ttf') format('truetype');
+  /* Add other font formats for broader browser support */
+}
+
+@font-face {
+  font-family: 'Pixelify Sans';
+  src: url('fonts/PixelifySans-VariableFont_wght.ttf') format('truetype');
+  /* Add other font formats for broader browser support */
+}
+
+@font-face {
+  font-family: 'LanaPixel';
+  src: url('fonts/LanaPixel.ttf') format('truetype');
+  /* Add other font formats for broader browser support */
+}
+
+body {
+  font-family: 'Pixelify Sans', monospace; /* Fallback to a generic monospaced font */
+  font-size: 24px; /* Pixel fonts often look best at sizes that are multiples of their base grid */
+  image-rendering: pixelated; /* CSS property to help browsers render pixels sharply when scaled */
+}
+
+
+.street-input::placeholder {
+  font-family: 'LanaPixel', monospace; /* Apply your pixelated font here */
+  font-size: 24px; /* Different font size for placeholder */
+  color: #948D8D;     /* Different color for placeholder */
+  /* You can add other text-related properties like font-weight, font-style */
+}
+
+.street-h2 {
+  color: #4C4444;
+}
+
+.street-h2:hover {
+  color: #BEB9B9;
+}
+
+.retro-text {
+  font-family: 'Pixelify Sans', sans-serif;
+  font-size: 32px;
+  image-rendering: pixelated; /* Also helpful for pixelated fonts */
+}

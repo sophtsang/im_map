@@ -13,6 +13,19 @@
   }
 }
 
+.map-title {
+  color: #3E3333
+}
+
+.map-title:hover {
+  color: #BEB9B9
+}
+
+
+.teleportation-button:hover{
+  color: #BEB9B9
+}
+
 .App-header {
   background-color: #282c34;
   min-height: 100vh;
