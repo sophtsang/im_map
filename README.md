@@ -9,9 +9,9 @@ On G2:
 colmap feature_extractor \
 --database_path database.db
 --image_path StreetView/doppelgangers/<location>
---SiftExtractor.use_gpu 0
+--SiftExtraction.use_gpu 0
 
-colmap exhaustive_matching \
+colmap exhaustive_matcher \
 --database_path database.db
 
 On im_map:
