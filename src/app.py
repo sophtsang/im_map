@@ -15,7 +15,7 @@ app = Flask(__name__)
 CORS(app)
 
 INPUT_DIRS = ""
-
+API_KEY = "AIzaSyAhKtmL9NcWLfryjOzZ7HOVVxxNcQF_ZEI"
 
 @app.route('/get_markers', methods=["POST"])
 def get_data():
@@ -122,9 +122,11 @@ def autocomplete():
         possible_locations = np.array([path.name.replace("_", " ") for path in list(paths.iterdir())])
         mask = np.array([locations[:len(current_input)].lower() == current_input.lower() for locations in possible_locations])
         suggestions = [locs[len(current_input):] for locs in possible_locations[mask][:3]]
-        return jsonify({"suggestions" : suggestions if len(suggestions) > 0 else [""], "index" : 0})
+        return jsonify({"suggestions" : suggestions if len(suggestions) > 0 else [""], 
+                        "curr" : [locs[:len(current_input)] for locs in possible_locations[mask][:3]],
+                        "index" : 0})
     else:
-        return jsonify({"suggestions" : [""], "index" : 0})
+        return jsonify({"suggestions" : [""], "curr" : [""], "index" : 0})
     
 if __name__ == "__main__":
     app.run(debug=True, host="127.0.0.1", port=5000)
