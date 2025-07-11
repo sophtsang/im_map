@@ -42,7 +42,6 @@ const Map3D = ({ lat, lng, zoom = 14, apiKey, markers }) => {
   const [dist, setDist] = useState(null);
   const [distMarker, setDistMarker] = useState([]);
 
-
 //   TODAY 6/27/2025: I HAVE BEEN HONKED AT BY THE SAME CAR 2 TIMES
   useEffect(() => {
     if (distMarker.length == 2) {
