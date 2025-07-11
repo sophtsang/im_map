@@ -109,9 +109,6 @@ function App() {
         </form>
       </section>
 
-      {/* Directory Lister Component */}
-      <GetData onDataLoaded={handleMarker} />
-
       {googleMapsApiKey ? (
         <Map3D 
           lat={mapLat} 
@@ -122,7 +119,10 @@ function App() {
       ) : (
         <p>Google Maps API Key is missing. Please set REACT_APP_Maps_API_KEY in your .env file.</p>
       )}
-      
+
+      {/* Directory Lister Component */}
+      <GetData onDataLoaded={handleMarker} />
+
     </div>
   );
 }

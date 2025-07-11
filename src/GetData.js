@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { APIProvider, Map, AdvancedMarker, InfoWindow, ControlPosition } from '@vis.gl/react-google-maps';
 import './GetData.css';
+import Colmap from './Colmap';
 import Map3D from './Google';
 
 function GetData({ onDataLoaded }) {
@@ -19,10 +20,10 @@ function GetData({ onDataLoaded }) {
 
         useEffect(() => {
             const handleResize = () => {
-            setWindowSize({
-                width: window.innerWidth,
-                height: window.innerHeight,
-            });
+                setWindowSize({
+                    width: window.innerWidth,
+                    height: window.innerHeight,
+                });
             };
 
             window.addEventListener('resize', handleResize);
@@ -36,8 +37,9 @@ function GetData({ onDataLoaded }) {
     const handleKeyPress = (event) => {
         const index = suggestion.index
         const suggestions = suggestion.suggestions
+        const curr = suggestion.curr
         if (event.key === "Tab") {
-            setDirectoryPath(directoryPath + suggestions[index])
+            setDirectoryPath(curr[index] + suggestions[index])
             setSuggestion({suggestions: [''], index: 0})
         }
 
@@ -108,7 +110,7 @@ function GetData({ onDataLoaded }) {
                         background: '#E8E6E5', 
                         fontFamily: 'Pixelify Sans'
                     }}>
-        <h2 className="street-h2">she's for the streets</h2>
+            <h2 className="street-h2">_'s for the streets</h2>
             
             <div style={{ position: 'relative', width: '300px', height: 'auto' }}>
                 <input
@@ -152,43 +154,46 @@ function GetData({ onDataLoaded }) {
                             textAlign: 'left' }}>
                 </input>  
 
-            <button onClick={listFolders} 
-                    disabled={loading} 
-                    style={{padding: 0,
-                            cursor: 'pointer',
-                            marginLeft: width/2+120,
-                            marginBottom: '25px',
-                            background: 'none',
-                            border: 'none',
-                            display: 'flex',
-                            alignItems: 'center' }}>
-                <img 
-                    src={process.env.PUBLIC_URL + "favicon.ico"} 
-                    style={{ 
-                            width: '80px'
-                            }} 
-                />
-            </button>
-        </div>
-
-        {error && <p style={{ color: '#948D8D' }}>Error: {error}</p>}
-
-
-        {folderNames.length > 0 && (
-            <div style={{ marginTop: '20px' }}>
-            <h3>Folders:</h3>
-            <ul>
-                {folderNames.map((folder, index) => (
-                <li key={index}>{folder}</li>
-                ))}
-            </ul>
+                <button onClick={listFolders} 
+                        disabled={loading} 
+                        style={{padding: 0,
+                                cursor: 'pointer',
+                                marginLeft: width/2+120,
+                                marginBottom: '25px',
+                                background: 'none',
+                                border: 'none',
+                                display: 'flex',
+                                alignItems: 'center' }}>
+                    <img 
+                        src={process.env.PUBLIC_URL + "/favicon.ico"} 
+                        style={{ 
+                                width: '80px'
+                        }} 
+                    />
+                </button>
             </div>
-        )}
 
-        {!loading && !error && folderNames.length === 0 && directoryPath && (
-            <p style={{ marginTop: '20px', color: "#948D8D" }}>No folders found in the specified path.</p>
-        )}
+            {error && <p style={{ color: '#948D8D' }}>Error: {error}</p>}
+
+
+            {folderNames.length > 0 && (
+                <div style={{ marginTop: '20px' }}>
+                <h3>Folders:</h3>
+                <ul>
+                    {folderNames.map((folder, index) => (
+                    <li key={index}>{folder}</li>
+                    ))}
+                </ul>
+                </div>
+            )}
+
+            {!loading && !error && folderNames.length === 0 && directoryPath && (
+                <p style={{ marginTop: '20px', color: "#948D8D" }}>No folders found in the specified path.</p>
+            )}
+        
+            <Colmap onDirectoryChange={{"location": directoryPath, "click": loading}}/>
         </div>
+
     );
 }
 

@@ -1,6 +1,6 @@
 from pathlib import Path
 import os
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, send_file
 from flask_cors import CORS
 import requests
 from bs4 import BeautifulSoup
@@ -14,11 +14,14 @@ from geopy.distance import geodesic
 app = Flask(__name__)
 CORS(app)
 
+colmap_location = None
+
 INPUT_DIRS = ""
 API_KEY = "AIzaSyAhKtmL9NcWLfryjOzZ7HOVVxxNcQF_ZEI"
 
 @app.route('/get_markers', methods=["POST"])
 def get_data():
+    global colmap_location
     location = request.get_json().get("path").replace(" ", "_")
     data_dic = {}
 
@@ -76,6 +79,7 @@ def get_data():
         return jsonify({"error": "Directory path ('path' field) is required in the request body."}), 400
     try:
         location = location.replace(" ", "_")
+        colmap_location = location
         input_dirs = Path(f"/home/xtsang/im_map/public/doppelgangers/{location}")
 
         if not input_dirs.exists() or not input_dirs.is_dir():
@@ -128,5 +132,15 @@ def autocomplete():
     else:
         return jsonify({"suggestions" : [""], "curr" : [""], "index" : 0})
     
+@app.route('/colmap_reconstruction', methods=['POST'])
+def get_colmap_reconstruction():
+    global colmap_location
+    colmap_location = request.get_json().get("location")
+    print("IAM AT", colmap_location)
+    try:
+        return send_file(f"/home/xtsang/im_map/matches/{colmap_location.replace(" ", "_")}/sparse/colmap_model.json")
+    except:
+        return send_file("/home/xtsang/im_map/matches/gerrard-hall/sparse/colmap_model.json")
+
 if __name__ == "__main__":
     app.run(debug=True, host="127.0.0.1", port=5000)
