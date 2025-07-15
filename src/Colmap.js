@@ -14,6 +14,13 @@ function Colmap({ onDirectoryChange }) {
     const [clicked, setClicked] = useState(true);
     const [dataPoints, setDataPoints] = useState(null);
     const axes = new THREE.AxesHelper( 1 );
+    const [width, setWidth] = useState(window.innerWidth);
+    const height = 1100;
+
+    window.addEventListener('resize', () => {
+        setWidth(window.innerWidth);
+        rendererRef.current.setSize(window.innerWidth, height)
+    })
 
     // window.addEventListener('keydown', (event) => {
     //     if (controlsRef.current && cameraRef.current) {    
@@ -60,12 +67,8 @@ function Colmap({ onDirectoryChange }) {
         }
     }, [onDirectoryChange.click]);
 
-    useEffect(() => { 
+    useEffect(() => {
         if(!dataPoints) return;
-
-        const width = window.innerWidth;
-        console.log(width)
-        const height = 1100;
 
         if (rendererRef.current) {
             rendererRef.current.dispose();
@@ -83,7 +86,6 @@ function Colmap({ onDirectoryChange }) {
         renderer.setSize(width, height);
         const controls = new OrbitControls(camera, renderer.domElement);
 
-        // Optional: Tune behavior
         controls.enableDamping = true;
         controls.dampingFactor = 0.05;
 
@@ -92,7 +94,6 @@ function Colmap({ onDirectoryChange }) {
         controls.maxDistance = 100;
 
         controls.enablePan = true;
-        // controls.maxPolarAngle = Math.PI / 2; // Limit to prevent flipping
 
         mountRef.current.appendChild(renderer.domElement);
         rendererRef.current = renderer;
@@ -118,9 +119,7 @@ function Colmap({ onDirectoryChange }) {
             const geometry = new THREE.BufferGeometry();
 
             dataPoints.points.forEach(pt => {
-                if (pt.r == 0 && pt.g == 0 && pt.b == 0) {
-                    console.log("SKIP")
-                } else {
+                if (pt.r != 0 || pt.g != 0 || pt.b != 0) {
                     positions.push(pt.x, -pt.y, pt.z);
                     colors.push(pt.r / 255, pt.g / 255, pt.b / 255);
                 }
@@ -148,9 +147,7 @@ function Colmap({ onDirectoryChange }) {
             marginTop: '20px',
         }}
         />
-
     )
-
 }
 
 export default Colmap;
