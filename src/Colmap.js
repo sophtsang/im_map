@@ -64,6 +64,7 @@ function Colmap({ onDirectoryChange }) {
         if(!dataPoints) return;
 
         const width = window.innerWidth;
+        console.log(width)
         const height = 1100;
 
         if (rendererRef.current) {
@@ -73,7 +74,7 @@ function Colmap({ onDirectoryChange }) {
 
         const scene = new THREE.Scene();
         scene.add(axes);
-        scene.background = new THREE.Color(0x948d8d);
+        scene.background = new THREE.Color(0x4C4444);
         
         const camera = new THREE.PerspectiveCamera(120, width / height, 0.1, 1000);
         camera.position.z = 2;
@@ -128,7 +129,7 @@ function Colmap({ onDirectoryChange }) {
             geometry.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
             geometry.setAttribute('color', new THREE.Float32BufferAttribute(colors, 3));
 
-            const material = new THREE.PointsMaterial({ size: 0.02, vertexColors: true });
+            const material = new THREE.PointsMaterial({ size: 0.005, vertexColors: true });
             const points = new THREE.Points(geometry, material);
 
             sceneRef.current.add(points);
@@ -144,7 +145,6 @@ function Colmap({ onDirectoryChange }) {
         style={{
             width: '100%',
             height: '500px',
-            border: '1px solid #ccc',
             marginTop: '20px',
         }}
         />
