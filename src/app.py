@@ -17,7 +17,6 @@ CORS(app)
 colmap_location = None
 
 INPUT_DIRS = ""
-API_KEY = "AIzaSyAhKtmL9NcWLfryjOzZ7HOVVxxNcQF_ZEI"
 
 @app.route('/get_markers', methods=["POST"])
 def get_data():
