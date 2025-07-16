@@ -41,10 +41,10 @@ function Colmap({ onDirectoryChange }) {
 
     const handleCamSliderChange = useCallback((camSize) => {
         setCamSize(camSize);
+        setClicked(false);
         if (camGeomRef.current) {
             camGeomRef.current.parameters.height = camSize;
             camGeomRef.current.parameters.width = camSize;
-            console.log(camSize)
         }
     }, [setCamSize]);
 
@@ -131,6 +131,15 @@ function Colmap({ onDirectoryChange }) {
             const colors = [];
             const geometry = new THREE.BufferGeometry();
 
+            if (sceneRef.current) {
+                const oldPlanes = sceneRef.current.getObjectByName("cameraPlanes");
+                if (oldPlanes) {
+                    sceneRef.current.remove(oldPlanes);
+                    oldPlanes.geometry.dispose();
+                    oldPlanes.material.dispose();
+                }
+            }
+
             dataPoints.points.forEach(pt => {
                 if (pt.r != 0 || pt.g != 0 || pt.b != 0) {
                     positions.push(-pt.x, -pt.y, pt.z);
@@ -151,36 +160,37 @@ function Colmap({ onDirectoryChange }) {
             const material = new THREE.PointsMaterial({ size: pxSize, vertexColors: true });
             materialRef.current = material;
             const points = new THREE.Points(geometry, material);
+            sceneRef.current.add(points);
 
             const planeGeometry = new THREE.PlaneGeometry( camSize, camSize );
             const planeMaterial = new THREE.MeshNormalMaterial({ side: THREE.DoubleSide, opacity: 0.5 })
             camGeomRef.current = planeGeometry;
             
             const planes = new THREE.InstancedMesh(planeGeometry, planeMaterial, cameras.length)
-            sceneRef.current.add(points);
+            planes.name = "cameraPlanes";
             sceneRef.current.add(planes);
 
-            const dummy = new THREE.Object3D();
+            if (camSize > 0) {
+                const dummy = new THREE.Object3D();
 
-            cameras.forEach((data, i) => {
-                const quaternion = new THREE.Quaternion(data.qx, data.qy, data.qz, data.qw);
+                cameras.forEach((data, i) => {
+                    const quaternion = new THREE.Quaternion(data.qx, data.qy, data.qz, data.qw);
 
-                dummy.quaternion.copy(quaternion)
-                dummy.position.set(-data.x, -data.y, data.z);
+                    dummy.quaternion.copy(quaternion)
+                    dummy.position.set(-data.x, -data.y, data.z);
 
-                dummy.scale.set(0.5, 0.5, 0.5);
-                dummy.updateMatrix();
+                    dummy.scale.set(0.5, 0.5, 0.5);
+                    dummy.updateMatrix();
 
-                planes.setMatrixAt(i, dummy.matrix);
+                    planes.setMatrixAt(i, dummy.matrix);
 
-                if (data.color) {
-                    planes.setColorAt(i, data.color);
-                }
-            })
+                    if (data.color) {
+                        planes.setColorAt(i, data.color);
+                    }
+                })
+            }
         }
-
         setClicked(true);
-
     }, [clicked]);
 
     return (
@@ -244,10 +254,10 @@ function Colmap({ onDirectoryChange }) {
             {dataPoints && rendererRef.current && (
                 <Slider
                     defaultValue={0.5} 
-                    aria-label="Pixel Size" 
+                    aria-label="Camera Size" 
                     value={camSize}
                     marks
-                    min={0.1}
+                    min={0}
                     max={1.0}
                     step={0.05}
                     valueLabelDisplay="auto"
