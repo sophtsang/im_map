@@ -3,7 +3,8 @@ import * as THREE from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import Slider from '@mui/material/Slider'
 import Stack from '@mui/material/Stack'
-import { styled } from '@mui/material/styles';
+import Typography from '@mui/material/Typography'
+// import PixelifySans from './fonts/PixelifySans-VariableFont_wght.tff'
 
 import './Colmap.css'
 
@@ -14,22 +15,21 @@ function Colmap({ onDirectoryChange }) {
     const cameraRef = useRef(null);
     const controlsRef = useRef(null);
     const materialRef = useRef(null);
+    const camGeomRef = useRef(null);
     const [location, setLocation] = useState(null);
     const [clicked, setClicked] = useState(true);
     const [dataPoints, setDataPoints] = useState(null);
     const axes = new THREE.AxesHelper( 1 );
     const [pxSize, setPXSize] = useState(0.005);
+    const [camSize, setCamSize] = useState(0.5);
     const [width, setWidth] = useState(window.innerWidth);
-    const height = 1020;
+    const height = window.innerHeight - 175;
 
     window.addEventListener('resize', () => {
         setWidth(window.innerWidth);
         if (rendererRef.current) {
             rendererRef.current.setSize(window.innerWidth, height)
         }
-        // if (cameraRef.current) {
-        //     cameraRef.current.aspect = window.innerWidth / height
-        // }
     })
 
     const handleSliderChange = useCallback((pxSize) => {
@@ -38,6 +38,15 @@ function Colmap({ onDirectoryChange }) {
             materialRef.current.size = pxSize;
         }
     }, [setPXSize]);
+
+    const handleCamSliderChange = useCallback((camSize) => {
+        setCamSize(camSize);
+        if (camGeomRef.current) {
+            camGeomRef.current.parameters.height = camSize;
+            camGeomRef.current.parameters.width = camSize;
+            console.log(camSize)
+        }
+    }, [setCamSize]);
 
     useEffect(() => {
         if (onDirectoryChange.click) {
@@ -73,7 +82,6 @@ function Colmap({ onDirectoryChange }) {
             try {
                 rendererRef.current.dispose();
                 mountRef.current.removeChild(rendererRef.current.domElement)
-        
             } catch {
                 console.log(mountRef.current)
             }
@@ -119,14 +127,22 @@ function Colmap({ onDirectoryChange }) {
     useEffect(() => { 
         if (dataPoints && !clicked) {
             const positions = [];
+            const cameras = [];
             const colors = [];
             const geometry = new THREE.BufferGeometry();
 
             dataPoints.points.forEach(pt => {
                 if (pt.r != 0 || pt.g != 0 || pt.b != 0) {
-                    positions.push(pt.x, -pt.y, pt.z);
+                    positions.push(-pt.x, -pt.y, pt.z);
                     colors.push(pt.r / 255, pt.g / 255, pt.b / 255);
                 }
+            })
+
+            dataPoints.cameras.forEach(cam => {
+                cameras.push({x: cam.center[0], y: cam.center[1], z: cam.center[2], 
+                              color: new THREE.Color(0xff0000),
+                              qw: cam.qvec[0], qx: cam.qvec[1], qy: cam.qvec[2], qz: cam.qvec[3],
+                              rotation: cam.rotation, img_name: cam.image_name });
             })
 
             geometry.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
@@ -136,7 +152,31 @@ function Colmap({ onDirectoryChange }) {
             materialRef.current = material;
             const points = new THREE.Points(geometry, material);
 
+            const planeGeometry = new THREE.PlaneGeometry( camSize, camSize );
+            const planeMaterial = new THREE.MeshNormalMaterial({ side: THREE.DoubleSide, opacity: 0.5 })
+            camGeomRef.current = planeGeometry;
+            
+            const planes = new THREE.InstancedMesh(planeGeometry, planeMaterial, cameras.length)
             sceneRef.current.add(points);
+            sceneRef.current.add(planes);
+
+            const dummy = new THREE.Object3D();
+
+            cameras.forEach((data, i) => {
+                const quaternion = new THREE.Quaternion(data.qx, data.qy, data.qz, data.qw);
+
+                dummy.quaternion.copy(quaternion)
+                dummy.position.set(-data.x, -data.y, data.z);
+
+                dummy.scale.set(0.5, 0.5, 0.5);
+                dummy.updateMatrix();
+
+                planes.setMatrixAt(i, dummy.matrix);
+
+                if (data.color) {
+                    planes.setColorAt(i, data.color);
+                }
+            })
         }
 
         setClicked(true);
@@ -152,7 +192,8 @@ function Colmap({ onDirectoryChange }) {
                 mb: 1
             }}
         >
-            {dataPoints && rendererRef.current && (<Slider
+            {dataPoints && rendererRef.current && (
+                <Slider
                     defaultValue={0.005} 
                     aria-label="Pixel Size" 
                     value={pxSize}
@@ -165,7 +206,7 @@ function Colmap({ onDirectoryChange }) {
                     sx={{
                         color: '#4C4444',
                         height: 8,
-                        // width: '50%'
+                        width: '50%',
                         '& .MuiSlider-track': {
                             backgroundColor: '#4C4444',
                         },
@@ -186,15 +227,69 @@ function Colmap({ onDirectoryChange }) {
                             },
                         },
                         '& .MuiSlider-mark': {
-                            // backgroundColor: '#4C4444',
                             height: 8,
                             '&.MuiSlider-markActive': {
                             opacity: 1,
                             backgroundColor: '#948D8D',
                             },
                         },
+                        '& .MuiSlider-valueLabel': {
+                            backgroundColor: '#948D8D',
+                            fontFamily: 'Pixelify Sans',
+                            fontSize: 18
+                        }
                     }}
-                />)}
+                />)
+            }
+            {dataPoints && rendererRef.current && (
+                <Slider
+                    defaultValue={0.5} 
+                    aria-label="Pixel Size" 
+                    value={camSize}
+                    marks
+                    min={0.1}
+                    max={1.0}
+                    step={0.05}
+                    valueLabelDisplay="auto"
+                    onChange={(event, camSize) => handleCamSliderChange(camSize)} 
+                    sx={{
+                        color: '#4C4444',
+                        height: 8,
+                        width: '50%',
+                        '& .MuiSlider-track': {
+                            backgroundColor: '#4C4444',
+                        },
+                        '& .MuiSlider-rail': {
+                            opacity: 0.3,
+                            backgroundColor: '#948D8D',
+                        },
+                        '& .MuiSlider-thumb': {
+                            height: 20,
+                            width: 20,
+                            backgroundColor: '#948D8D',
+                            border: '6px solid #4C4444',
+                            '&:hover': {
+                            boxShadow: '0 0 0 8px #BEB9B9',
+                            },
+                            '&.Mui-active': {
+                            boxShadow: '0 0 0 14px #948D8D',
+                            },
+                        },
+                        '& .MuiSlider-mark': {
+                            height: 8,
+                            '&.MuiSlider-markActive': {
+                            opacity: 1,
+                            backgroundColor: '#948D8D',
+                            },
+                        },
+                        '& .MuiSlider-valueLabel': {
+                            backgroundColor: '#948D8D',
+                            fontFamily: 'Pixelify Sans',
+                            fontSize: 18
+                        }
+                    }}
+                />)
+            }
             {dataPoints && (<div
                 ref={mountRef}
                 style={{

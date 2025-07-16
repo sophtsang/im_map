@@ -17,6 +17,7 @@ CORS(app)
 colmap_location = None
 
 INPUT_DIRS = ""
+API_KEY = "AIzaSyAhKtmL9NcWLfryjOzZ7HOVVxxNcQF_ZEI"
 
 @app.route('/get_markers', methods=["POST"])
 def get_data():
@@ -135,11 +136,10 @@ def autocomplete():
 def get_colmap_reconstruction():
     global colmap_location
     colmap_location = request.get_json().get("location")
-    print("IAM AT", colmap_location)
     try:
         return send_file(f"/home/xtsang/im_map/matches/{colmap_location.replace(" ", "_")}/sparse/colmap_model.json")
     except:
-        return send_file("/home/xtsang/im_map/matches/gerrard-hall/sparse/colmap_model.json")
+        return jsonify(None)
 
 if __name__ == "__main__":
     app.run(debug=True, host="127.0.0.1", port=5000)
