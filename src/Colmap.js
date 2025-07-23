@@ -3,8 +3,10 @@ import * as THREE from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import Slider from '@mui/material/Slider'
 import Stack from '@mui/material/Stack'
-import Typography from '@mui/material/Typography'
-// import PixelifySans from './fonts/PixelifySans-VariableFont_wght.tff'
+import NoPhotographyIcon from '@mui/icons-material/NoPhotography';
+import CameraAltIcon from '@mui/icons-material/CameraAlt';
+import StopIcon from '@mui/icons-material/Stop';
+import SquareIcon from '@mui/icons-material/Square';
 
 import './Colmap.css'
 
@@ -194,112 +196,133 @@ function Colmap({ onDirectoryChange }) {
     }, [clicked]);
 
     return (
-        <Stack 
-            spacing={0.001}
-            direction="column"
-            sx={{ 
-                alignItems: 'center',
-                mb: 1
-            }}
-        >
+        <Stack sx={{ 
+                    alignItems: 'center',
+                    mb: 1
+                }}>
             {dataPoints && rendererRef.current && (
-                <Slider
-                    defaultValue={0.005} 
-                    aria-label="Pixel Size" 
-                    value={pxSize}
-                    marks
-                    min={0.001}
-                    max={0.02}
-                    step={0.001}
-                    valueLabelDisplay="auto"
-                    onChange={(event, pxSize) => handleSliderChange(pxSize)} 
-                    sx={{
-                        color: '#4C4444',
-                        height: 8,
-                        width: '50%',
-                        '& .MuiSlider-track': {
-                            backgroundColor: '#4C4444',
-                        },
-                        '& .MuiSlider-rail': {
-                            opacity: 0.3,
-                            backgroundColor: '#948D8D',
-                        },
-                        '& .MuiSlider-thumb': {
-                            height: 20,
-                            width: 20,
-                            backgroundColor: '#948D8D',
-                            border: '6px solid #4C4444',
-                            '&:hover': {
-                            boxShadow: '0 0 0 8px #BEB9B9',
-                            },
-                            '&.Mui-active': {
-                            boxShadow: '0 0 0 14px #948D8D',
-                            },
-                        },
-                        '& .MuiSlider-mark': {
-                            height: 8,
-                            '&.MuiSlider-markActive': {
-                            opacity: 1,
-                            backgroundColor: '#948D8D',
-                            },
-                        },
-                        '& .MuiSlider-valueLabel': {
-                            backgroundColor: '#948D8D',
-                            fontFamily: 'Pixelify Sans',
-                            fontSize: 18
-                        }
+                <Stack 
+                    spacing={2}
+                    direction="row"
+                    sx={{ 
+                        alignItems: 'center',
+                        mb: 1
                     }}
-                />)
-            }
+                >
+                    <span>pxls:</span>
+                    <StopIcon sx={{ color: '#4C4444' }}/>
+                    <Slider
+                        defaultValue={0.005} 
+                        aria-label="Pixel Size" 
+                        value={pxSize}
+                        marks
+                        min={0.001}
+                        max={0.02}
+                        step={0.001}
+                        valueLabelDisplay="auto"
+                        onChange={(event, pxSize) => handleSliderChange(pxSize)} 
+                        sx={{
+                            color: '#4C4444',
+                            height: 8,
+                            width: '500px',
+                            '& .MuiSlider-track': {
+                                backgroundColor: '#4C4444',
+                            },
+                            '& .MuiSlider-rail': {
+                                opacity: 0.3,
+                                backgroundColor: '#948D8D',
+                            },
+                            '& .MuiSlider-thumb': {
+                                height: 20,
+                                width: 20,
+                                backgroundColor: '#948D8D',
+                                border: '6px solid #4C4444',
+                                '&:hover': {
+                                boxShadow: '0 0 0 8px #BEB9B9',
+                                },
+                                '&.Mui-active': {
+                                boxShadow: '0 0 0 14px #948D8D',
+                                },
+                            },
+                            '& .MuiSlider-mark': {
+                                height: 8,
+                                '&.MuiSlider-markActive': {
+                                opacity: 1,
+                                backgroundColor: '#948D8D',
+                                },
+                            },
+                            '& .MuiSlider-valueLabel': {
+                                backgroundColor: '#948D8D',
+                                fontFamily: 'Pixelify Sans',
+                                fontSize: 18
+                            }
+                        }}
+                    />
+                    <SquareIcon sx={{ color: '#4C4444',
+                                  fontSize: 25 }}/>
+                </Stack>
+            )}
             {dataPoints && rendererRef.current && (
-                <Slider
-                    defaultValue={0.5} 
-                    aria-label="Camera Size" 
-                    value={camSize}
-                    marks
-                    min={0}
-                    max={1.0}
-                    step={0.05}
-                    valueLabelDisplay="auto"
-                    onChange={(event, camSize) => handleCamSliderChange(camSize)} 
-                    sx={{
-                        color: '#4C4444',
-                        height: 8,
-                        width: '50%',
-                        '& .MuiSlider-track': {
-                            backgroundColor: '#4C4444',
-                        },
-                        '& .MuiSlider-rail': {
-                            opacity: 0.3,
-                            backgroundColor: '#948D8D',
-                        },
-                        '& .MuiSlider-thumb': {
-                            height: 20,
-                            width: 20,
-                            backgroundColor: '#948D8D',
-                            border: '6px solid #4C4444',
-                            '&:hover': {
-                            boxShadow: '0 0 0 8px #BEB9B9',
-                            },
-                            '&.Mui-active': {
-                            boxShadow: '0 0 0 14px #948D8D',
-                            },
-                        },
-                        '& .MuiSlider-mark': {
-                            height: 8,
-                            '&.MuiSlider-markActive': {
-                            opacity: 1,
-                            backgroundColor: '#948D8D',
-                            },
-                        },
-                        '& .MuiSlider-valueLabel': {
-                            backgroundColor: '#948D8D',
-                            fontFamily: 'Pixelify Sans',
-                            fontSize: 18
-                        }
+                <Stack 
+                    spacing={2}
+                    direction="row"
+                    sx={{ 
+                        alignItems: 'center',
+                        mb: 1
                     }}
-                />)
-            }
+                >
+                    <span>cam: </span>
+                    <NoPhotographyIcon sx={{ color: '#4C4444' }}/>
+                    <Slider
+                        defaultValue={0.5} 
+                        aria-label="Camera Size" 
+                        value={camSize}
+                        marks
+                        min={0}
+                        max={1.0}
+                        step={0.05}
+                        valueLabelDisplay="auto"
+                        onChange={(event, camSize) => handleCamSliderChange(camSize)} 
+                        sx={{
+                            color: '#4C4444',
+                            height: 8,
+                            width: '500px',
+                            '& .MuiSlider-track': {
+                                backgroundColor: '#4C4444',
+                            },
+                            '& .MuiSlider-rail': {
+                                opacity: 0.3,
+                                backgroundColor: '#948D8D',
+                            },
+                            '& .MuiSlider-thumb': {
+                                height: 20,
+                                width: 20,
+                                backgroundColor: '#948D8D',
+                                border: '6px solid #4C4444',
+                                '&:hover': {
+                                boxShadow: '0 0 0 8px #BEB9B9',
+                                },
+                                '&.Mui-active': {
+                                boxShadow: '0 0 0 14px #948D8D',
+                                },
+                            },
+                            '& .MuiSlider-mark': {
+                                height: 8,
+                                '&.MuiSlider-markActive': {
+                                opacity: 1,
+                                backgroundColor: '#948D8D',
+                                },
+                            },
+                            '& .MuiSlider-valueLabel': {
+                                backgroundColor: '#948D8D',
+                                fontFamily: 'Pixelify Sans',
+                                fontSize: 18
+                            }
+                        }}
+                    />
+                    <CameraAltIcon sx={{ color: '#4C4444' }}/>
+                </Stack>
+            )}
             {dataPoints && (<div
                 ref={mountRef}
                 style={{
