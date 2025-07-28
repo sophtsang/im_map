@@ -1,5 +1,6 @@
 /* global google */
 import React, { useState, useEffect, useCallback, use } from 'react';
+// import { Polyline } from '@react-google-maps/api';
 import { APIProvider, Map, AdvancedMarker, InfoWindow, useMap } from '@vis.gl/react-google-maps';
 
 function Polyline({ distancePoints }) {
@@ -134,6 +135,7 @@ const Map3D = ({ lat, lng, zoom = 14, apiKey, markers }) => {
                 handleMarkerClick(name, details.lat, details.lng, details.images, event)
             }
             >
+            {/* Custom icon for doppelganger marker (e.g., a person emoji) */}
             <span style={{ fontSize: '30px' }}>{markerIcon}</span>
             </AdvancedMarker>
         ))}
