@@ -11,6 +11,7 @@ function GetData({ onDataLoaded }) {
     const [loading, setLoading] = useState(false);
     const [suggestion, setSuggestion] = useState({suggestions: [''], index: 0});
     const {width, height} = useWindowSize();
+    const [heading, setHeading] = useState(0);
 
     function useWindowSize() {
         const [windowSize, setWindowSize] = useState({
@@ -167,7 +168,8 @@ function GetData({ onDataLoaded }) {
                     <img 
                         src={process.env.PUBLIC_URL + "/favicon.ico"} 
                         style={{ 
-                                width: '80px'
+                                width: '80px',
+                                transform: 'rotate(' + heading + 'deg)'
                         }} 
                     />
                 </button>
@@ -191,7 +193,10 @@ function GetData({ onDataLoaded }) {
                 <p style={{ marginTop: '20px', color: "#948D8D" }}>No folders found in the specified path.</p>
             )}
         
-            <Colmap onDirectoryChange={{"location": directoryPath, "click": loading}}/>
+            <Colmap 
+                onDirectoryChange={{"location": directoryPath, "click": loading}}
+                onHeadingChange={setHeading}
+            />
         </div>
 
     );
