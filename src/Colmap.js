@@ -1,9 +1,8 @@
-import React, { useEffect, useRef, useState, useCallback } from 'react';
+import React, { useEffect, useRef, useState, useCallback, ChangeEvent } from 'react';
 import * as THREE from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import { PLYLoader } from 'three/examples/jsm/loaders/PLYLoader'
 import Switch from '@mui/material/Switch'
-import FormControlLabel from '@mui/material/FormControlLabel';
 import Slider from '@mui/material/Slider'
 import Stack from '@mui/material/Stack'
 import NoPhotographyIcon from '@mui/icons-material/NoPhotography';
@@ -29,19 +28,10 @@ function Colmap({ onDirectoryChange, onHeadingChange }) {
                     />} 
                 />);
     const [clicked, setClicked] = useState(true);
-    const currentRender = useRef(null);
-    if (!currentRender) {
-        currentRender.current = 'points';
-    }
-
-    const [checkedEvent, setCheckedEvent] = useState(null);
     const [dataPoints, setDataPoints] = useState(null);
-    const axes = new THREE.AxesHelper( 100 );
-    const grid = new THREE.GridHelper( 200, 20 )
-    grid.rotation.x = -Math.PI / 2;
-
-    const [pxSize, setPXSize] = useState(0.05);
-    const [camSize, setCamSize] = useState(2.0);
+    const axes = new THREE.AxesHelper( 1 );
+    const [pxSize, setPXSize] = useState(0.005);
+    const [camSize, setCamSize] = useState(0.5);
     const [width, setWidth] = useState(window.innerWidth);
     const height = window.innerHeight - 275;
 
@@ -57,17 +47,6 @@ function Colmap({ onDirectoryChange, onHeadingChange }) {
         const colors = [];
         const positions = [];
 
-        currentRender.current = 'points';
-
-        if (sceneRef.current) {
-            const oldPoints = sceneRef.current.getObjectByName("renderedPoints");
-            if (oldPoints) {
-                sceneRef.current.remove(oldPoints);
-                oldPoints.geometry.dispose();
-                oldPoints.material.dispose();
-            }
-        }
-
         dataPoints.points.forEach(pt => {
             positions.push(-pt.x, -pt.y, pt.z);
             colors.push(pt.r / 255, pt.g / 255, pt.b / 255);
@@ -79,27 +58,11 @@ function Colmap({ onDirectoryChange, onHeadingChange }) {
         const material = new THREE.PointsMaterial({ size: pxSize, vertexColors: true });
         materialRef.current = material;
         const points = new THREE.Points(geometry, material);
-        points.name = "renderedPoints";
         sceneRef.current.add(points);
     }
 
     function renderFused() {
         const loader = new PLYLoader();
-
-        if (currentRender.current === 'fused_points') {
-            return;
-        }
-
-        currentRender.current = 'fused_points';
-
-        if (sceneRef.current) {
-            const oldPoints = sceneRef.current.getObjectByName("renderedPoints");
-            if (oldPoints) {
-                sceneRef.current.remove(oldPoints);
-                oldPoints.geometry.dispose();
-                oldPoints.material.dispose();
-            }
-        }
 
         loader.load(process.env.PUBLIC_URL + "/doppelgangers/" + location.replace(/ /g, '_') + "/dense/fused.ply",
             (geometry) => {
@@ -115,7 +78,6 @@ function Colmap({ onDirectoryChange, onHeadingChange }) {
                 vertexColors: true,
             });
             const points = new THREE.Points(geometry, material);
-            points.name = "renderedPoints";
             sceneRef.current.add(points);
         });
     }
@@ -127,59 +89,9 @@ function Colmap({ onDirectoryChange, onHeadingChange }) {
         }
     }, [setPXSize]);
 
-    useEffect(() => {
-        currentRender.current = 'points';
-
-        const checkLocation = async () => {
-            try {
-                const response = await fetch('http://127.0.0.1:5000/check_location', { 
-                    method: 'POST',
-                    headers: {
-                    'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({ location: onDirectoryChange.location }),
-                });
-
-                const data = await response.json();
-                if (data.exists) {
-                    fuseSwitch.current = <Switch 
-                        onChange={handleRenderChange} 
-                        sx={{ color: '#4C4444' }}
-                    />;
-                } else {
-                    fuseSwitch.current = <FormControlLabel disabled control={
-                        <Switch 
-                            onChange={handleRenderChange} 
-                            sx={{ color: '#4C4444' }}
-                        />} 
-                    />;
-                }
-            } catch {
-                fuseSwitch.current = <FormControlLabel disabled control={
-                    <Switch 
-                        onChange={handleRenderChange} 
-                        sx={{ color: '#4C4444' }}
-                    />} 
-                />;
-            }
-        }
-
-        checkLocation();
-
-    }, [onDirectoryChange.click])
-
     const handleRenderChange = (event) => {
-        if (event) {
-            setCheckedEvent(event)
-        } else if (checkedEvent) {
-            event = checkedEvent
-        }
-
-        if (event && event.target.checked) {
-            renderFused();
-        } else {
-            renderPoints();
-        }
+        console.log(event.target.checked)
+        setChecked(event.target.checked);
     };
 
     const handleCamSliderChange = useCallback((camSize) => {
@@ -231,15 +143,11 @@ function Colmap({ onDirectoryChange, onHeadingChange }) {
         }
 
         const scene = new THREE.Scene();
-        scene.add(grid);
         scene.add(axes);
-       
         scene.background = new THREE.Color(0x4C4444);
 
         const camera = new THREE.PerspectiveCamera(120, width / height, 0.1, 1000);
-        if (dataPoints.mean) {
-            camera.position.set(Math.abs(dataPoints.mean[0]), Math.abs(dataPoints.mean[1]), Math.abs(dataPoints.mean[2]))
-        }
+        camera.position.z = 2;
 
         const renderer = new THREE.WebGLRenderer({ antialias: true });
         renderer.setSize(width, height);
@@ -247,7 +155,6 @@ function Colmap({ onDirectoryChange, onHeadingChange }) {
 
         controls.enableDamping = true;
         controls.dampingFactor = 0.05;
-        // controls.autoRotate = true;
 
         controls.screenSpacePanning = false;
         controls.minDistance = 1;
@@ -258,7 +165,6 @@ function Colmap({ onDirectoryChange, onHeadingChange }) {
         mountRef.current.appendChild(renderer.domElement);
         rendererRef.current = renderer;
         cameraRef.current = camera;
-        scene.rotation.x = -Math.PI / 2;
         sceneRef.current = scene;
         controlsRef.current = controls;
 
@@ -304,11 +210,15 @@ function Colmap({ onDirectoryChange, onHeadingChange }) {
                               rotation: cam.rotation, img_name: cam.image_name });
             })
 
+            if (checked) {
+                renderFused();
+            } else {
+                renderPoints();
+            }
+
             const planeGeometry = new THREE.PlaneGeometry( camSize, camSize );
             const planeMaterial = new THREE.MeshNormalMaterial({ side: THREE.DoubleSide, opacity: 0.5 })
             camGeomRef.current = planeGeometry;
-
-            handleRenderChange(null);
             
             const planes = new THREE.InstancedMesh(planeGeometry, planeMaterial, cameras.length)
             planes.name = "cameraPlanes";
@@ -335,14 +245,13 @@ function Colmap({ onDirectoryChange, onHeadingChange }) {
             }
         }
         setClicked(true);
-    }, [clicked]);
+    }, [clicked, checked]);
 
     return (
         <Stack sx={{ 
                     alignItems: 'center',
                     mb: 1
-                }}
-        >
+                }}>
             {dataPoints && rendererRef.current && (
                 <Stack 
                     spacing={2}
@@ -355,13 +264,13 @@ function Colmap({ onDirectoryChange, onHeadingChange }) {
                     <span style={{ color: "#4C4444" }}>pxls:</span>
                     <StopIcon sx={{ color: '#4C4444' }}/>
                     <Slider
-                        defaultValue={0.05} 
+                        defaultValue={0.005} 
                         aria-label="Pixel Size" 
                         value={pxSize}
                         marks
-                        min={0.01}
-                        max={0.2}
-                        step={0.01}
+                        min={0.001}
+                        max={0.05}
+                        step={0.001}
                         valueLabelDisplay="auto"
                         onChange={(event, pxSize) => handleSliderChange(pxSize)} 
                         sx={{
@@ -417,13 +326,13 @@ function Colmap({ onDirectoryChange, onHeadingChange }) {
                     <span style={{ color: "#4C4444" }}>cam: </span>
                     <NoPhotographyIcon sx={{ color: '#4C4444' }}/>
                     <Slider
-                        defaultValue={2.0} 
+                        defaultValue={0.5} 
                         aria-label="Camera Size" 
                         value={camSize}
                         marks
                         min={0}
-                        max={4.0}
-                        step={0.1}
+                        max={2.0}
+                        step={0.05}
                         valueLabelDisplay="auto"
                         onChange={(event, camSize) => handleCamSliderChange(camSize)} 
                         sx={{
@@ -467,7 +376,10 @@ function Colmap({ onDirectoryChange, onHeadingChange }) {
                 </Stack>
             )}
 
-            {dataPoints && rendererRef.current && fuseSwitch.current}
+            <Switch 
+                checked={checked}
+                onChange={handleRenderChange} 
+            />
 
             {dataPoints && (<div
                 ref={mountRef}

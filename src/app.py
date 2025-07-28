@@ -136,20 +136,10 @@ def autocomplete():
 def get_colmap_reconstruction():
     global colmap_location
     colmap_location = request.get_json().get("location")
-
     try:
         return send_file(f"/home/xtsang/im_map/matches/{colmap_location.replace(" ", "_")}/sparse/colmap_model.json")
     except:
         return jsonify(None)
-
-@app.route('/check_location', methods=['POST'])
-def check_location():
-    global colmap_location
-    colmap_location = request.get_json().get("location")
-
-    print(colmap_location, os.path.exists(f"/home/xtsang/im_map/public/doppelgangers/{colmap_location.replace(" ", "_")}/dense/fused.ply"))
-
-    return jsonify({"exists": os.path.exists(f"/home/xtsang/im_map/public/doppelgangers/{colmap_location.replace(" ", "_")}/dense/fused.ply")}) 
 
 if __name__ == "__main__":
     app.run(debug=True, host="127.0.0.1", port=5000)
