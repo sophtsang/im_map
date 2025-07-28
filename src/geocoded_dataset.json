@@ -13056,11 +13056,19 @@
         "latlng": "46.77459722222222, 5.523041666666667"
     },
     "Saint_Sophia\n": {
-        "address": "Saint+Sophia",
+        "address": "Saint+Sophia\n",
         "latlng": "50.452333333333335, 30.51563888888889"
     },
     "Tabernacle_Calvinistic_Methodist_Chapel,_St_Fagans\n": {
-        "address": "Tabernacle+Calvinistic+Methodist+Chapel,+St+Fagans",
+        "address": "Tabernacle+Calvinistic+Methodist+Chapel,+St+Fagans\n",
         "latlng": "51.48914722222222, -3.2694027777777777"
+    },
+    "Alexander_Nevsky_Cathedral,_Sofia\n": {
+        "address": "Alexander+Nevsky+Cathedral,+Sofia\n",
+        "latlng": "42.695839, 23.332969"
+    },
+    "Alexander_Nevsky_Cathedral,_Tallinn\n": {
+        "address": "Alexander+Nevsky+Cathedral,+Tallinn",
+        "latlng": "59.435833, 24.739444" 
     }
 }

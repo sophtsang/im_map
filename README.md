@@ -36,13 +36,13 @@ colmap exhaustive_matcher \
     --SiftMatching.use_gpu 1
 ```
 
-COLMAP's ```exhaustive_matcher``` results in a scene graph consisting of many incorrectly matched images that capture visually similar but distinct surfaces (aka, doppelgangers). The result of keeping these doppelganger matches when running COLMAP's ```mapper``` function is often a 3d reconstruction that contains collapsed structures and incorrect geometry.
+COLMAP's ```exhaustive_matcher``` results in a scene graph consisting of many incorrectly matched images that capture visually similar but distinct surfaces (aka, doppelgangers). The result of keeping these doppelganger matches when running COLMAP's ```mapper``` function is often a 3D reconstruction that contains collapsed structures and incorrect geometry.
 
-Given doppelganger example of north and south facades of Alexander Nevsky Cathedral, Sofia / north, west, south facades of Alexander Nevsky Cathedral, Tallinn => resulting COLMAP collapsed structures.
+![Alt text](public/results/alexander_nevsky_cathedral,_sofia.png)
 
 In this pipeline, we prune edges containing doppelganger matches from the scene graph returned by ```exhaustive_matcher``` by having Google Gemini API act as a doppelganger filter. Each panorama in the Google Maps Street View dataset contains a ground truth heading, relative to true North. Given a scene, for every Wikimedia Commons image and its matches produced by ```exhaustive_matcher```, we have Gemini API return only the Google Maps Street View images that accurately depict the same facade captured by the Wikimedia Commons image. To provide an accurate heading, camera location, and camera viewing direction relative to the scene for each Wikimedia Commons image, Google Maps Street View images returned by Gemini API are constrained within some range of headings. 
 
-The weighted average of headings, where number of feature matches from COLMAP act as weights, of the remaining Google Maps Street View images are used to give the corresponding Wikimedia Commons image a camera location, camera viewing direction, and GPS-based prior position. Finally, only other Wikimedia Commons images already matched by COLMAP and taken at the same camera location and viewing direction are kept as "true matches":
+The weighted average of headings, where number of feature matches from COLMAP act as weights, of the remaining Google Maps Street View images are used to give the corresponding Wikimedia Commons image a camera location, camera viewing direction, and GPS-based prior position. Finally, only other Wikimedia Commons images already matched by COLMAP and taken at approximately "nearby" camera location and viewing direction are kept as "true matches":
 
 ```
 python get_matches.py ${LOCATION} filter_matches
@@ -71,18 +71,13 @@ colmap model_aligner \
     --robust_alignment_max_error 3.0
 ```
 
-To run [colmap gui]: LIBGL_ALWAYS_SOFTWARE=1 colmap gui
 
-### On G2: 
-Prepare the <location> matching dataset:
-```
-python prepare_colmap.py <location>
-```
 
-This is what the directory should look like for <location>: 
+## Asides: 
+Prior to running the 3D reconstruction pipeline for a given location, the directory should look like: 
 
 ```
-xt73/doppelgangers-plusplus/
+<user>/doppelgangers-plusplus/
 ├── matches/
 │   ├── st_wiki_combined/<location>  
 │   ├── streetview/<location>           
@@ -92,34 +87,4 @@ xt73/doppelgangers-plusplus/
         ├── database.db 
         ├── sparse/          
         └── matches.csv 
-```
-Then run:
-```
-colmap feature_extractor \
---database_path database.db
---image_path StreetView/doppelgangers/<location>
---SiftExtraction.use_gpu 0
-
-colmap exhaustive_matcher \
---database_path database.db
-```
-
-### On im_map:
-scp from database.db from G2 to im_map
-
-```
-colmap mapper \
---database_path database.db
---image_path <image directory>
---output_path sparse
-
-LIBGL_ALWAYS_SOFTWARE=1 colmap gui
-```
-
-### Optional:
-```
-colmap model_converter \
---input_path sparse/0 \
---output_path sparse/0 \
---output_type TXT
 ```

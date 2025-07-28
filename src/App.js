@@ -6,7 +6,7 @@ import './App.css'; // Optional: for basic styling
 function App() {
   const [inputLat, setInputLat] = useState('40.7887');
   const [inputLng, setInputLng] = useState('-73.9862');
-  const googleMapsApiKey = ; // Replace with your actual API Key
+  const googleMapsApiKey = 'AIzaSyA_K3rLCMyJQlpIN_uTwObJ8lbFfLv7YCI'; // Replace with your actual API Key
 
   const [mapLat, setMapLat] = useState(40.7887);
   const [mapLng, setMapLng] = useState(-73.9862);
