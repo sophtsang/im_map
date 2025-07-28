@@ -23,5 +23,8 @@ yarn-debug.log*
 yarn-error.log*
 
 public/doppelgangers/
+matches/
+doppelgangers-plusplus/
+colmap/
 
 src/die.py
