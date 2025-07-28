@@ -13,7 +13,7 @@ import SquareIcon from '@mui/icons-material/Square';
 
 import './Colmap.css'
 
-function Colmap({ onDirectoryChange }) {
+function Colmap({ onDirectoryChange, onHeadingChange }) {
     const mountRef = useRef(null);
     const rendererRef = useRef(null);
     const sceneRef = useRef(null);
@@ -22,6 +22,7 @@ function Colmap({ onDirectoryChange }) {
     const materialRef = useRef(null);
     const camGeomRef = useRef(null);
     const [location, setLocation] = useState(null);
+    const [heading, setHeading] = useState(0);
     const fuseSwitch = useRef(<FormControlLabel disabled control={
                     <Switch 
                         sx={{ color: '#4C4444' }}
@@ -42,7 +43,7 @@ function Colmap({ onDirectoryChange }) {
     const [pxSize, setPXSize] = useState(0.05);
     const [camSize, setCamSize] = useState(2.0);
     const [width, setWidth] = useState(window.innerWidth);
-    const height = window.innerHeight;
+    const height = window.innerHeight - 275;
 
     window.addEventListener('resize', () => {
         setWidth(window.innerWidth);
@@ -264,6 +265,17 @@ function Colmap({ onDirectoryChange }) {
         const animate = () => {
             requestAnimationFrame(animate);
             controls.update();
+
+            let angle = controls.getAzimuthalAngle(); 
+            if (angle < 0) {
+                angle += 2 * Math.PI;
+            }
+            angle = ((angle * 180) / Math.PI) - 180
+            if (angle !== heading) {
+                setHeading(angle)
+                onHeadingChange?.(angle);
+            }
+
             renderer.render(scene, camera);
         };
         animate();
@@ -340,7 +352,7 @@ function Colmap({ onDirectoryChange }) {
                         mb: 1
                     }}
                 >
-                    <span>pxls:</span>
+                    <span style={{ color: "#4C4444" }}>pxls:</span>
                     <StopIcon sx={{ color: '#4C4444' }}/>
                     <Slider
                         defaultValue={0.05} 
@@ -402,7 +414,7 @@ function Colmap({ onDirectoryChange }) {
                         mb: 1
                     }}
                 >
-                    <span>cam: </span>
+                    <span style={{ color: "#4C4444" }}>cam: </span>
                     <NoPhotographyIcon sx={{ color: '#4C4444' }}/>
                     <Slider
                         defaultValue={2.0} 
