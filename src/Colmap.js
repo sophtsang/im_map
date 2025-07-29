@@ -133,7 +133,7 @@ function Colmap({ onDirectoryChange, onHeadingChange }) {
 
         const checkLocation = async () => {
             try {
-                const response = await fetch('http://127.0.0.1:5000/check_location', { 
+                const response = await fetch('https://im-map.onrender.com/check_location', { 
                     method: 'POST',
                     headers: {
                     'Content-Type': 'application/json',
@@ -198,7 +198,7 @@ function Colmap({ onDirectoryChange, onHeadingChange }) {
             setLocation(onDirectoryChange.location);
 
             const getLocation = async () => {
-                const response = await fetch('http://127.0.0.1:5000/colmap_reconstruction', { 
+                const response = await fetch('https://im-map.onrender.com/colmap_reconstruction', { 
                     method: 'POST',
                     headers: {
                     'Content-Type': 'application/json',

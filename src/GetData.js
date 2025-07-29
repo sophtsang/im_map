@@ -1,8 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import { APIProvider, Map, AdvancedMarker, InfoWindow, ControlPosition } from '@vis.gl/react-google-maps';
 import './GetData.css';
 import Colmap from './Colmap';
-import Map3D from './Google';
 
 function GetData({ onDataLoaded }) {
     const [directoryPath, setDirectoryPath] = useState('');
@@ -55,7 +53,7 @@ function GetData({ onDataLoaded }) {
     const handleInputChange = async (event) => {
         setDirectoryPath(event.target.value);
         try {
-            const response = await fetch('http://127.0.0.1:5000/autocomplete', { 
+            const response = await fetch('https://im-map.onrender.com/autocomplete', { 
                 method: 'POST',
                 headers: {
                 'Content-Type': 'application/json',
@@ -81,7 +79,7 @@ function GetData({ onDataLoaded }) {
         setFolderNames([]); 
 
         try {
-            const response = await fetch('http://127.0.0.1:5000/get_markers', { 
+            const response = await fetch('https://im-map.onrender.com/get_markers', { 
                 method: 'POST',
                 headers: {
                 'Content-Type': 'application/json',
@@ -137,7 +135,7 @@ function GetData({ onDataLoaded }) {
                 <input
                     type="text"
                     readOnly
-                    value={suggestion.suggestions[0] != "" ? directoryPath + suggestion.suggestions[suggestion.index] : ""}
+                    value={suggestion.suggestions[0] !== "" ? directoryPath + suggestion.suggestions[suggestion.index] : ""}
                     style={{position: 'absolute',
                             top: 20,
                             left: width/2-220,
