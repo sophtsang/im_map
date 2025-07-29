@@ -10,8 +10,8 @@ import Levenshtein
 import numpy as np
 from shapely.geometry import Point
 from geopy.distance import geodesic
-from gcloud import storage
-from oauth2client.service_account import ServiceAccountCredentials
+from google.cloud import storage
+from google.oauth2 import service_account
 
 app = Flask(__name__)
 CORS(app)
@@ -20,9 +20,9 @@ colmap_location = None
 
 INPUT_DIRS = ""
 API_KEY = os.environ.get("API_KEY")
-CLOUD_KEY = ServiceAccountCredentials.from_json_keyfile_dict(
-    os.environ.get("GOOGLE_CLOUD_JSON"))
-client = storage.Client(credentials=CLOUD_KEY, project='im-map')
+CLOUD_KEY = json.loads(os.environ.get("GOOGLE_CLOUD_JSON"))
+credentials = service_account.Credentials.from_service_account_info(CLOUD_KEY)
+client = storage.Client(credentials=credentials, project='im-map')
 
 @app.route('/get_markers', methods=["POST"])
 def get_data():

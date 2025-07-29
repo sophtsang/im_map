@@ -9,8 +9,9 @@ python-Levenshtein
 numpy
 Shapely
 geopy
-gcloud
-oauth2client
+google-cloud
+google-auth
+google-cloud-storage
 Flask==2.3.2
 gunicorn==20.1.0
 google-cloud-storage
