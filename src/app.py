@@ -10,6 +10,8 @@ import Levenshtein
 import numpy as np
 from shapely.geometry import Point
 from geopy.distance import geodesic
+from gcloud import storage
+from oauth2client.service_account import ServiceAccountCredentials
 
 app = Flask(__name__)
 CORS(app)
@@ -18,6 +20,9 @@ colmap_location = None
 
 INPUT_DIRS = ""
 API_KEY = os.environ.get("API_KEY")
+CLOUD_KEY = ServiceAccountCredentials.from_json_keyfile_dict(
+    os.environ.get("GOOGLE_CLOUD_JSON"))
+client = storage.Client(credentials=CLOUD_KEY, project='im-map')
 
 @app.route('/get_markers', methods=["POST"])
 def get_data():
@@ -120,10 +125,12 @@ def get_distance():
 
 @app.route('/autocomplete', methods=["POST"])
 def autocomplete():
+    print("AUTOCOMPLETING")
+    bucket = client.get_bucket('doppelgangers')
+    blobs = bucket.list_blobs()
     current_input = request.get_json().get("path").replace("_", " ")
     if len(current_input) > 0:
-        paths = Path("/home/xtsang/im_map/public/doppelgangers")
-        possible_locations = np.array([path.name.replace("_", " ") for path in list(paths.iterdir())])
+        possible_locations = np.array(list(set([blob.name.split("/")[0].replace("_", " ") for blob in blobs])))
         mask = np.array([locations[:len(current_input)].lower() == current_input.lower() for locations in possible_locations])
         suggestions = [locs[len(current_input):] for locs in possible_locations[mask][:3]]
         return jsonify({"suggestions" : suggestions if len(suggestions) > 0 else [""], 
@@ -134,11 +141,15 @@ def autocomplete():
     
 @app.route('/colmap_reconstruction', methods=['POST'])
 def get_colmap_reconstruction():
+    print("CONSTRUCTING")
     global colmap_location
     colmap_location = request.get_json().get("location")
 
     try:
-        return send_file(f"/home/xtsang/im_map/matches/{colmap_location.replace(" ", "_")}/sparse/colmap_model.json")
+        bucket = client.get_bucket('public_matches')
+        blob = json.loads(bucket.blob(f"{colmap_location.replace(" ", "_")}/sparse/colmap_model.json").download_as_string())
+        return jsonify(blob)
+        # return send_file(f"/home/xtsang/im_map/public/matches/{colmap_location.replace(" ", "_")}/sparse/colmap_model.json")
     except:
         return jsonify(None)
 
@@ -147,9 +158,12 @@ def check_location():
     global colmap_location
     colmap_location = request.get_json().get("location")
 
-    print(colmap_location, os.path.exists(f"/home/xtsang/im_map/public/doppelgangers/{colmap_location.replace(" ", "_")}/dense/fused.ply"))
-
-    return jsonify({"exists": os.path.exists(f"/home/xtsang/im_map/public/doppelgangers/{colmap_location.replace(" ", "_")}/dense/fused.ply")}) 
+    bucket = client.get_bucket('public_matches')
+    blob = bucket.blob(f"{colmap_location.replace(" ", "_")}/sparse/fused.ply")
+    return jsonify({"exists": blob.exists(client)})
+    # return jsonify({"exists": os.path.exists(f"/home/xtsang/im_map/public/doppelgangers/{colmap_location.replace(" ", "_")}/dense/fused.ply")}) 
 
 if __name__ == "__main__":
-    app.run(debug=True, host="127.0.0.1", port=5000)
+    # app.run(debug=True, host="127.0.0.1", port=5000)
+    port = int(os.environ.get("PORT", 5000))
+    app.run(debug=True, host="0.0.0.0", port=port)
