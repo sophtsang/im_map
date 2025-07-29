@@ -6,7 +6,7 @@ import './App.css'; // Optional: for basic styling
 function App() {
   const [inputLat, setInputLat] = useState('40.7887');
   const [inputLng, setInputLng] = useState('-73.9862');
-  const googleMapsApiKey = ; // Replace with your actual API Key
+  // const googleMapsApiKey = 'AIzaSyA_K3rLCMyJQlpIN_uTwObJ8lbFfLv7YCI';
 
   const [mapLat, setMapLat] = useState(40.7887);
   const [mapLng, setMapLng] = useState(-73.9862);
@@ -109,7 +109,7 @@ function App() {
         </form>
       </section>
 
-      {googleMapsApiKey ? (
+      {/* {googleMapsApiKey ? (
         <Map3D 
           lat={mapLat} 
           lng={mapLng}
@@ -118,7 +118,7 @@ function App() {
           markers={marker} />
       ) : (
         <p>Google Maps API Key is missing. Please set REACT_APP_Maps_API_KEY in your .env file.</p>
-      )}
+      )} */}
 
       {/* Directory Lister Component */}
       <GetData onDataLoaded={handleMarker} />
