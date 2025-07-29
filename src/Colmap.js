@@ -35,7 +35,7 @@ function Colmap({ onDirectoryChange, onHeadingChange }) {
     }
 
     const [checkedEvent, setCheckedEvent] = useState(null);
-    const [dataPoints, setDataPoints] = useState(null);
+    const dataPoints = useRef(null);
     const axes = new THREE.AxesHelper( 100 );
     const grid = new THREE.GridHelper( 200, 20 )
     grid.rotation.x = -Math.PI / 2;
@@ -68,7 +68,7 @@ function Colmap({ onDirectoryChange, onHeadingChange }) {
             }
         }
 
-        dataPoints.points.forEach(pt => {
+        dataPoints.current.points.forEach(pt => {
             positions.push(-pt.x, -pt.y, pt.z);
             colors.push(pt.r / 255, pt.g / 255, pt.b / 255);
         })
@@ -118,6 +118,7 @@ function Colmap({ onDirectoryChange, onHeadingChange }) {
             points.name = "renderedPoints";
             sceneRef.current.add(points);
         });
+
     }
 
     const handleSliderChange = useCallback((pxSize) => {
@@ -180,6 +181,7 @@ function Colmap({ onDirectoryChange, onHeadingChange }) {
         } else {
             renderPoints();
         }
+
     };
 
     const handleCamSliderChange = useCallback((camSize) => {
@@ -210,7 +212,7 @@ function Colmap({ onDirectoryChange, onHeadingChange }) {
                 }
 
                 const data = await response.json();
-                setDataPoints(data);
+                dataPoints.current = data
                 setClicked(false);
             }
             getLocation();
@@ -219,7 +221,7 @@ function Colmap({ onDirectoryChange, onHeadingChange }) {
     }, [onDirectoryChange.click]);
 
     useEffect(() => {
-        if(!dataPoints) return;
+        if(!dataPoints.current) return;
 
         if (rendererRef.current) {
             try {
@@ -237,8 +239,8 @@ function Colmap({ onDirectoryChange, onHeadingChange }) {
         scene.background = new THREE.Color(0x4C4444);
 
         const camera = new THREE.PerspectiveCamera(120, width / height, 0.1, 1000);
-        if (dataPoints.mean) {
-            camera.position.set(Math.abs(dataPoints.mean[0]), Math.abs(dataPoints.mean[1]), Math.abs(dataPoints.mean[2]))
+        if (dataPoints.current.mean) {
+            camera.position.set(Math.abs(dataPoints.current.mean[0]), Math.abs(dataPoints.current.mean[1]), Math.abs(dataPoints.current.mean[2]))
         }
 
         const renderer = new THREE.WebGLRenderer({ antialias: true });
@@ -248,6 +250,7 @@ function Colmap({ onDirectoryChange, onHeadingChange }) {
         controls.enableDamping = true;
         controls.dampingFactor = 0.05;
         // controls.autoRotate = true;
+        // controls.autoRotateSpeed = 3.5;
 
         controls.screenSpacePanning = false;
         controls.minDistance = 1;
@@ -282,10 +285,10 @@ function Colmap({ onDirectoryChange, onHeadingChange }) {
 
         setClicked(true);
 
-    }, [dataPoints]);
+    }, [dataPoints.current]);
 
     useEffect(() => { 
-        if (dataPoints && !clicked) {
+        if (dataPoints.current && !clicked) {
             const cameras = [];
 
             if (sceneRef.current) {
@@ -297,7 +300,7 @@ function Colmap({ onDirectoryChange, onHeadingChange }) {
                 }
             }
 
-            dataPoints.cameras.forEach(cam => {
+            dataPoints.current.cameras.forEach(cam => {
                 cameras.push({x: cam.center[0], y: cam.center[1], z: cam.center[2], 
                               color: new THREE.Color(0xff0000),
                               qw: cam.qvec[0], qx: cam.qvec[1], qy: cam.qvec[2], qz: cam.qvec[3],
@@ -343,7 +346,7 @@ function Colmap({ onDirectoryChange, onHeadingChange }) {
                     mb: 1
                 }}
         >
-            {dataPoints && rendererRef.current && (
+            {dataPoints.current && rendererRef.current && (
                 <Stack 
                     spacing={2}
                     direction="row"
@@ -405,7 +408,7 @@ function Colmap({ onDirectoryChange, onHeadingChange }) {
                                   fontSize: 25 }}/>
                 </Stack>
             )}
-            {dataPoints && rendererRef.current && (
+            {dataPoints.current && rendererRef.current && (
                 <Stack 
                     spacing={2}
                     direction="row"
@@ -467,9 +470,9 @@ function Colmap({ onDirectoryChange, onHeadingChange }) {
                 </Stack>
             )}
 
-            {dataPoints && rendererRef.current && fuseSwitch.current}
+            {dataPoints.current && rendererRef.current && fuseSwitch.current}
 
-            {dataPoints && (<div
+            {dataPoints.current && (<div
                 ref={mountRef}
                 style={{
                     width: '100%',
