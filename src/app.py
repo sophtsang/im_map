@@ -129,8 +129,11 @@ def autocomplete():
     bucket = client.get_bucket('doppelgangers')
     blobs = bucket.list_blobs()
     current_input = request.get_json().get("path").replace("_", " ")
+    print(current_input)
+
     if len(current_input) > 0:
         possible_locations = np.array(list(set([blob.name.split("/")[0].replace("_", " ") for blob in blobs])))
+        print(possible_locations)
         mask = np.array([locations[:len(current_input)].lower() == current_input.lower() for locations in possible_locations])
         suggestions = [locs[len(current_input):] for locs in possible_locations[mask][:3]]
         return jsonify({"suggestions" : suggestions if len(suggestions) > 0 else [""], 
