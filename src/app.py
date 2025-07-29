@@ -164,7 +164,7 @@ def check_location():
     bucket = client.get_bucket('public_matches')
     blob = bucket.blob(f"{colmap_location.replace(" ", "_")}/sparse/fused.ply")
     print(blob.exists(client))
-    return jsonify({"exists": blob.exists(client), "ply": blob.download_as_bytes()})
+    return jsonify({"exists": blob.exists(client), "ply": blob})
     # return jsonify({"exists": os.path.exists(f"/home/xtsang/im_map/public/doppelgangers/{colmap_location.replace(" ", "_")}/dense/fused.ply")}) 
 
 if __name__ == "__main__":
