@@ -1,0 +1,7 @@
+# npm install --save three
+# npm install @mui/material @emotion/react @emotion/styled
+# npm install @mui/icons-material
+# npm install @vis.gl/react-google-maps
+
+Flask==2.3.2
+gunicorn==20.1.0
