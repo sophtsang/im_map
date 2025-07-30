@@ -256,8 +256,8 @@ function Colmap({ onDirectoryChange, onHeadingChange }) {
 
         controls.enableDamping = true;
         controls.dampingFactor = 0.05;
-        // controls.autoRotate = true;
-        // controls.autoRotateSpeed = 3.5;
+        controls.autoRotate = true;
+        controls.autoRotateSpeed = 3.5;
 
         controls.screenSpacePanning = false;
         controls.minDistance = 1;
