@@ -1,6 +1,6 @@
 from pathlib import Path
 import os
-from flask import Flask, request, jsonify, send_file
+from flask import Flask, request, jsonify, send_file, Response
 from flask_cors import CORS
 import requests
 from bs4 import BeautifulSoup
@@ -20,7 +20,9 @@ colmap_location = None
 
 INPUT_DIRS = ""
 API_KEY = os.environ.get("API_KEY")
+
 CLOUD_KEY = json.loads(os.environ.get("GOOGLE_CLOUD_JSON"))
+
 credentials = service_account.Credentials.from_service_account_info(CLOUD_KEY)
 client = storage.Client(credentials=credentials, project='im-map')
 
@@ -163,9 +165,18 @@ def check_location():
 
     bucket = client.get_bucket('public_matches')
     blob = bucket.blob(f"{colmap_location.replace(" ", "_")}/sparse/fused.ply")
-    print(blob.exists(client))
-    return jsonify({"exists": blob.exists(client), "ply": blob})
+
+    return jsonify({"exists": blob.exists(client)})
     # return jsonify({"exists": os.path.exists(f"/home/xtsang/im_map/public/doppelgangers/{colmap_location.replace(" ", "_")}/dense/fused.ply")}) 
+
+@app.route("/get_fused/<location>", methods=['GET'])
+def get_fused(location):
+    bucket = client.get_bucket('public_matches')
+    blob = bucket.blob(f"{location.replace(" ", "_")}/sparse/fused.ply")
+
+    if not blob.exists():
+        return None
+    return Response(blob.download_as_bytes(), content_type="application/octet-stream")
 
 if __name__ == "__main__":
     # app.run(debug=True, host="127.0.0.1", port=5000)

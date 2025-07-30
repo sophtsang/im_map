@@ -66,6 +66,7 @@ const Map3D = ({ lat, lng, zoom = 14, apiKey, markers }) => {
   const getDistance = async (distancePoints) => {
     try {
         const response = await fetch('https://im-map.onrender.com/get_distance', { 
+        // const response = await fetch('http://127.0.0.1:5000/get_distance', {
             method: 'POST',
             headers: {
             'Content-Type': 'application/json',

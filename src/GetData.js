@@ -54,6 +54,7 @@ function GetData({ onDataLoaded }) {
         setDirectoryPath(event.target.value);
         try {
             const response = await fetch('https://im-map.onrender.com/autocomplete', { 
+            // const response = await fetch('http://127.0.0.1:5000/autocomplete', {
                 method: 'POST',
                 headers: {
                 'Content-Type': 'application/json',
@@ -80,6 +81,7 @@ function GetData({ onDataLoaded }) {
 
         try {
             const response = await fetch('https://im-map.onrender.com/get_markers', { 
+            // const response = await fetch('http://127.0.0.1:5000/get_markers', {
                 method: 'POST',
                 headers: {
                 'Content-Type': 'application/json',

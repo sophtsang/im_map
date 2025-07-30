@@ -83,8 +83,9 @@ function Colmap({ onDirectoryChange, onHeadingChange }) {
         sceneRef.current.add(points);
     }
 
-    function renderFused() {
+    async function renderFused() {
         const loader = new PLYLoader();
+        console.log("FUSED")
 
         if (currentRender.current === 'fused_points') {
             return;
@@ -101,7 +102,11 @@ function Colmap({ onDirectoryChange, onHeadingChange }) {
             }
         }
 
-        loader.load(process.env.PUBLIC_URL + "/doppelgangers/" + location.replace(/ /g, '_') + "/dense/fused.ply",
+        const colmap_location = location.replace(/ /g, '_');
+        // loader.load(process.env.PUBLIC_URL + "/doppelgangers/" + location.replace(/ /g, '_') + "/dense/fused.ply",
+        loader.load(
+            `https://im-map.onrender.com/get_fused/${colmap_location}`,
+            // `http://127.0.0.1:5000/get_fused/${colmap_location}`,
             (geometry) => {
             const positions = geometry.attributes.position;
             for (let i = 0; i < positions.count; i++) {
@@ -134,6 +139,7 @@ function Colmap({ onDirectoryChange, onHeadingChange }) {
         const checkLocation = async () => {
             try {
                 const response = await fetch('https://im-map.onrender.com/check_location', { 
+                // const response = await fetch('http://127.0.0.1:5000/check_location', {
                     method: 'POST',
                     headers: {
                     'Content-Type': 'application/json',
@@ -199,6 +205,7 @@ function Colmap({ onDirectoryChange, onHeadingChange }) {
 
             const getLocation = async () => {
                 const response = await fetch('https://im-map.onrender.com/colmap_reconstruction', { 
+                // const response = await fetch('http://127.0.0.1:5000/colmap_reconstruction', {
                     method: 'POST',
                     headers: {
                     'Content-Type': 'application/json',
