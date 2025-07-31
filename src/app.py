@@ -127,15 +127,12 @@ def get_distance():
 
 @app.route('/autocomplete', methods=["POST"])
 def autocomplete():
-    print("AUTOCOMPLETING")
     bucket = client.get_bucket('doppelgangers')
     blobs = bucket.list_blobs()
     current_input = request.get_json().get("path").replace("_", " ")
-    print(current_input)
 
     if len(current_input) > 0:
         possible_locations = np.array(list(set([blob.name.split("/")[0].replace("_", " ") for blob in blobs])))
-        print(possible_locations)
         mask = np.array([locations[:len(current_input)].lower() == current_input.lower() for locations in possible_locations])
         suggestions = [locs[len(current_input):] for locs in possible_locations[mask][:3]]
         return jsonify({"suggestions" : suggestions if len(suggestions) > 0 else [""], 
@@ -146,13 +143,13 @@ def autocomplete():
     
 @app.route('/colmap_reconstruction', methods=['POST'])
 def get_colmap_reconstruction():
-    print("CONSTRUCTING")
-    global colmap_location
     colmap_location = request.get_json().get("location")
+    colmap_location = f"{colmap_location.replace(" ", "_")}/colmap_model.json"
 
     try:
         bucket = client.get_bucket('public_matches')
-        blob = json.loads(bucket.blob(f"{colmap_location.replace(" ", "_")}/sparse/colmap_model.json").download_as_string())
+        blob = json.loads(bucket.blob(colmap_location).download_as_string())
+        # print("SUCCESS")
         return jsonify(blob)
         # return send_file(f"/home/xtsang/im_map/public/matches/{colmap_location.replace(" ", "_")}/sparse/colmap_model.json")
     except:
@@ -160,20 +157,23 @@ def get_colmap_reconstruction():
 
 @app.route('/check_location', methods=['POST'])
 def check_location():
-    global colmap_location
     colmap_location = request.get_json().get("location")
-
     bucket = client.get_bucket('public_matches')
-    blob = bucket.blob(f"{colmap_location.replace(" ", "_")}/sparse/fused.ply")
-
-    return jsonify({"exists": blob.exists(client)})
+    blob = bucket.blob(f"{colmap_location.replace(" ", "_")}/fused.ply")
+    prefix = f"{colmap_location.replace(" ", "_")}/sparse/"
+    
+    try:
+        folders = np.array([blob.name.replace(prefix, "").split("/")[0] for blob in bucket.list_blobs(prefix=prefix)])
+        folders = list(np.unique(folders[~np.char.find(folders, '.') == 0]))
+    except:
+        folders = []
+    return jsonify({"exists": blob.exists(client), "options": folders})
     # return jsonify({"exists": os.path.exists(f"/home/xtsang/im_map/public/doppelgangers/{colmap_location.replace(" ", "_")}/dense/fused.ply")}) 
 
-@app.route("/get_fused/<location>", methods=['GET'])
+@app.route("/get_fused/<path:location>", methods=['GET'])
 def get_fused(location):
     bucket = client.get_bucket('public_matches')
-    blob = bucket.blob(f"{location.replace(" ", "_")}/sparse/fused.ply")
-
+    blob = bucket.blob(f"{location.replace(" ", "_")}/fused.ply")
     if not blob.exists():
         return None
     return Response(blob.download_as_bytes(), content_type="application/octet-stream")

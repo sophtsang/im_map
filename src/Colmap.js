@@ -3,6 +3,7 @@ import * as THREE from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import { PLYLoader } from 'three/examples/jsm/loaders/PLYLoader'
 import Switch from '@mui/material/Switch'
+import Grid from '@mui/material/Grid';
 import FormControlLabel from '@mui/material/FormControlLabel';
 import Slider from '@mui/material/Slider'
 import Stack from '@mui/material/Stack'
@@ -10,6 +11,8 @@ import NoPhotographyIcon from '@mui/icons-material/NoPhotography';
 import CameraAltIcon from '@mui/icons-material/CameraAlt';
 import StopIcon from '@mui/icons-material/Stop';
 import SquareIcon from '@mui/icons-material/Square';
+import TextField from '@mui/material/TextField';
+import Autocomplete from '@mui/material/Autocomplete';
 
 import './Colmap.css'
 
@@ -21,6 +24,7 @@ function Colmap({ onDirectoryChange, onHeadingChange }) {
     const controlsRef = useRef(null);
     const materialRef = useRef(null);
     const camGeomRef = useRef(null);
+    const options = useRef({});
     const [location, setLocation] = useState(null);
     const [heading, setHeading] = useState(0);
     const fuseSwitch = useRef(<FormControlLabel disabled control={
@@ -56,6 +60,7 @@ function Colmap({ onDirectoryChange, onHeadingChange }) {
         const geometry = new THREE.BufferGeometry();
         const colors = [];
         const positions = [];
+        // console.log("POINT")
 
         currentRender.current = 'points';
 
@@ -85,7 +90,7 @@ function Colmap({ onDirectoryChange, onHeadingChange }) {
 
     async function renderFused() {
         const loader = new PLYLoader();
-        console.log("FUSED")
+        // console.log("FUSED")
 
         if (currentRender.current === 'fused_points') {
             return;
@@ -102,7 +107,7 @@ function Colmap({ onDirectoryChange, onHeadingChange }) {
             }
         }
 
-        const colmap_location = location.replace(/ /g, '_');
+        const colmap_location = location.replace(/ /g, '_') + "/sparse/" + options.current.choice;
         // loader.load(process.env.PUBLIC_URL + "/doppelgangers/" + location.replace(/ /g, '_') + "/dense/fused.ply",
         loader.load(
             `https://im-map.onrender.com/get_fused/${colmap_location}`,
@@ -126,6 +131,14 @@ function Colmap({ onDirectoryChange, onHeadingChange }) {
 
     }
 
+    const handleOptionChange = (event, choice) => {
+        if (choice) {
+            options.current = {options: options.current.options, choice: choice}
+            checkLocation(onDirectoryChange.location + "/sparse/" + choice)
+            getLocation(choice)
+        }
+    }
+
     const handleSliderChange = useCallback((pxSize) => {
         setPXSize(pxSize);
         if (materialRef.current) {
@@ -133,35 +146,28 @@ function Colmap({ onDirectoryChange, onHeadingChange }) {
         }
     }, [setPXSize]);
 
-    useEffect(() => {
-        currentRender.current = 'points';
+    async function checkLocation(colmap_location) {
+        try {
+            const response = await fetch('https://im-map.onrender.com/check_location', { 
+            // const response = await fetch('http://127.0.0.1:5000/check_location', {
+                method: 'POST',
+                headers: {
+                'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ location: colmap_location }),
+            });
 
-        const checkLocation = async () => {
-            try {
-                const response = await fetch('https://im-map.onrender.com/check_location', { 
-                // const response = await fetch('http://127.0.0.1:5000/check_location', {
-                    method: 'POST',
-                    headers: {
-                    'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({ location: onDirectoryChange.location }),
-                });
+            const data = await response.json();
+            if (data.options && onDirectoryChange.click) {
+                options.current = { options: data.options, choice: data.options[0] };
+            } 
 
-                const data = await response.json();
-                if (data.exists) {
-                    fuseSwitch.current = <Switch 
-                        onChange={handleRenderChange} 
-                        sx={{ color: '#4C4444' }}
-                    />;
-                } else {
-                    fuseSwitch.current = <FormControlLabel disabled control={
-                        <Switch 
-                            onChange={handleRenderChange} 
-                            sx={{ color: '#4C4444' }}
-                        />} 
-                    />;
-                }
-            } catch {
+            if (data.exists) {
+                fuseSwitch.current = <Switch 
+                    onChange={handleRenderChange} 
+                    sx={{ color: '#4C4444' }}
+                />;
+            } else {
                 fuseSwitch.current = <FormControlLabel disabled control={
                     <Switch 
                         onChange={handleRenderChange} 
@@ -169,10 +175,41 @@ function Colmap({ onDirectoryChange, onHeadingChange }) {
                     />} 
                 />;
             }
+        } catch {
+            fuseSwitch.current = <FormControlLabel disabled control={
+                <Switch 
+                    onChange={handleRenderChange} 
+                    sx={{ color: '#4C4444' }}
+                />} 
+            />;
+        }
+    }
+
+    async function getLocation(render_choice) {
+        const response = await fetch('https://im-map.onrender.com/colmap_reconstruction', { 
+        // const response = await fetch('http://127.0.0.1:5000/colmap_reconstruction', {
+            method: 'POST',
+            headers: {
+            'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ location: onDirectoryChange.location + "/sparse/" + render_choice }),
+        });
+
+        if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.error || 'Something went wrong on the server.');
         }
 
-        checkLocation();
+        const data = await response.json();
+        if (onDirectoryChange.click || data != null) {
+            dataPoints.current = data
+        }
+        setClicked(false);
+    }
 
+    useEffect(() => {
+        currentRender.current = 'points';
+        checkLocation(onDirectoryChange.location);
     }, [onDirectoryChange.click])
 
     const handleRenderChange = (event) => {
@@ -182,12 +219,11 @@ function Colmap({ onDirectoryChange, onHeadingChange }) {
             event = checkedEvent
         }
 
-        if (event && event.target.checked) {
+        if (event && event.target.checked && clicked) {
             renderFused();
         } else {
             renderPoints();
         }
-
     };
 
     const handleCamSliderChange = useCallback((camSize) => {
@@ -202,30 +238,9 @@ function Colmap({ onDirectoryChange, onHeadingChange }) {
     useEffect(() => {
         if (onDirectoryChange.click) {
             setLocation(onDirectoryChange.location);
-
-            const getLocation = async () => {
-                const response = await fetch('https://im-map.onrender.com/colmap_reconstruction', { 
-                // const response = await fetch('http://127.0.0.1:5000/colmap_reconstruction', {
-                    method: 'POST',
-                    headers: {
-                    'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({ location: onDirectoryChange.location }),
-                });
-
-                if (!response.ok) {
-                    const errorData = await response.json();
-                    throw new Error(errorData.error || 'Something went wrong on the server.');
-                }
-
-                const data = await response.json();
-                dataPoints.current = data
-                setClicked(false);
-            }
-            getLocation();
-
+            getLocation('scaled');
         }
-    }, [onDirectoryChange.click]);
+    }, [onDirectoryChange.click, options.current.choice]);
 
     useEffect(() => {
         if(!dataPoints.current) return;
@@ -256,8 +271,8 @@ function Colmap({ onDirectoryChange, onHeadingChange }) {
 
         controls.enableDamping = true;
         controls.dampingFactor = 0.05;
-        controls.autoRotate = true;
-        controls.autoRotateSpeed = 3.5;
+        // controls.autoRotate = true;
+        // controls.autoRotateSpeed = 3.5;
 
         controls.screenSpacePanning = false;
         controls.minDistance = 1;
@@ -477,7 +492,58 @@ function Colmap({ onDirectoryChange, onHeadingChange }) {
                 </Stack>
             )}
 
-            {dataPoints.current && rendererRef.current && fuseSwitch.current}
+            <Stack 
+                    spacing={5}
+                    direction="row"
+                    sx={{ 
+                        alignItems: 'center',
+                        mb: 1
+                    }}
+            >
+                {dataPoints.current && rendererRef.current && options.current && (
+                    <Autocomplete
+                        disablePortal
+                        options={options.current.options}
+                        sx={{ width: 150,
+                              fontFamily: 'Pixelify Sans'
+                        }}
+                        onChange={handleOptionChange}
+                        renderInput={(params) => <TextField {...params} 
+                                                    variant="filled"
+                                                    label="facade"
+                                                    sx={{
+                                                        '& .MuiInputBase-input': {
+                                                            fontFamily: 'Pixelify Sans',
+                                                        },
+                                                        '& .MuiInputLabel-root': {
+                                                            fontFamily: 'Pixelify Sans',
+                                                            fontSize: 20
+                                                        },
+                                                        '& .MuiFilledInput-root': {
+                                                        '&:before, &:after': {
+                                                            borderBottom: 'none',
+                                                        }},
+                                                    }}
+                                                />
+                                    }
+                    />
+                )}
+                
+                {dataPoints.current && rendererRef.current && (
+                    <Grid component="label" container alignItems="center" spacing={1}>
+                        <Grid item
+                              sx={{
+                                color: '#948D8D'
+                              }}>sprs</Grid>
+                        <Grid item>{fuseSwitch.current}</Grid>
+                        <Grid item
+                              sx={{
+                                color: '#948D8D'
+                              }}>dens</Grid>
+                    </Grid>
+                )}
+
+            </Stack>
 
             {dataPoints.current && (<div
                 ref={mountRef}
