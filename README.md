@@ -71,7 +71,22 @@ colmap model_aligner \
     --robust_alignment_max_error 3.0
 ```
 
+# stitch post-processing
+This pipeline may result in an overpruned scene graph that produces several split COLMAP reconstructions for each facade.
+The gameplan:
+Align and scale to world dimension the largest, densest model (we assume the result to be ground truth reference).
+Use ICP to align other sparser models. Assume that Street View images are used in these sparser models, which we can then use 
+as references.
 
+Global coordinate system is defined by ENU coordinates from the Google Street View GPS lat-lon-alts, where the center lat-lon-alt of the scene defined in geocoded_dataset_0-1000.json acts as the origin in this ENU coordinate system.
+The result of pruned COLMAP mapper is a mostly disjoint set of 3D reconstructions of each facade of a scene, each in their own local coordinate system and scale. To merge all facade reconstructions into one full world-scale model, we use _ to transform each facade reconstruction from its local coordinate system to the global ENU-defined coordinate system, using Street View images, their quaternions and translations, as the reference points for computing the similarity transform.
+
+This is under the assumption that each facade reconstruction is structurally correct, and differs from its world-dimension reconstruction by only a translation, rotation, and scale (all linear transformations).
+Assume camera intrinsics are accurate.
+
+y is South, x is West 
+
+x is North, y is East ** for now
 
 ## Asides: 
 Prior to running the 3D reconstruction pipeline for a given location, the directory should look like: 
@@ -88,3 +103,10 @@ Prior to running the 3D reconstruction pipeline for a given location, the direct
         ├── sparse/          
         └── matches.csv 
 ```
+
+To run the COLMAP GUI: ```LIBGL_ALWAYS_SOFTWARE=1 colmap gui```
+
+I have the COLMAP and ground truth points for Street View, I can get the PCA of both and align upright.
+Then use ICP with fixed rotation matrix to get scale and translation. 
+
+upright vector of ground truth points is perpendicular to xy plane.
