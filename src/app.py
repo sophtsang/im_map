@@ -127,7 +127,7 @@ def get_distance():
 
 @app.route('/autocomplete', methods=["POST"])
 def autocomplete():
-    bucket = client.get_bucket('doppelgangers')
+    bucket = client.get_bucket('public_matches')
     blobs = bucket.list_blobs()
     current_input = request.get_json().get("path").replace("_", " ")
 
@@ -179,6 +179,6 @@ def get_fused(location):
     return Response(blob.download_as_bytes(), content_type="application/octet-stream")
 
 if __name__ == "__main__":
-    # app.run(debug=True, host="127.0.0.1", port=5000)
-    port = int(os.environ.get("PORT", 5000))
-    app.run(debug=True, host="0.0.0.0", port=port)
+    app.run(debug=True, host="127.0.0.1", port=5000)
+    # port = int(os.environ.get("PORT", 5000))
+    # app.run(debug=True, host="0.0.0.0", port=port)
