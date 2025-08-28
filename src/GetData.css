@@ -24,7 +24,7 @@ body {
 
 
 .street-input::placeholder {
-  font-family: 'LanaPixel', monospace; /* Apply your pixelated font here */
+  font-family: 'Pixelify Sans', monospace; /* Apply your pixelated font here */
   font-size: 24px; /* Different font size for placeholder */
   color: #948D8D;     /* Different color for placeholder */
   /* You can add other text-related properties like font-weight, font-style */

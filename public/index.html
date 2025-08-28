@@ -29,15 +29,17 @@
   <body>
     <noscript>You need to enable JavaScript to run this app.</noscript>
     <div id="root"></div>
-    <!--
-      This HTML file is a template.
-      If you open it directly in the browser, you will see an empty page.
 
-      You can add webfonts, meta tags, or analytics to this file.
-      The build step will place the bundled scripts into the <body> tag.
+    <div id="loading_screen">
+      <img id="loading_img_0" src="../public/loading0.png" class="loading_img active" alt="Loading 0" />
+      <img id="loading_img_1" src="../public/loading1.png" class="loading_img" alt="Loading 1" />
+      <img id="loading_img_2" src="../public/loading2.png" class="loading_img" alt="Loading 2" />
+      <img id="loading_img_3" src="../public/loading3.png" class="loading_img" alt="Loading 3" />
+    </div>
 
-      To begin the development, run `npm start` or `yarn start`.
-      To create a production bundle, use `npm run build` or `yarn build`.
-    -->
+    <script>(g=>{var h,a,k,p="The Google Maps JavaScript API",c="google",l="importLibrary",q="__ib__",m=document,b=window;b=b[c]||(b[c]={});var d=b.maps||(b.maps={}),r=new Set,e=new URLSearchParams,u=()=>h||(h=new Promise(async(f,n)=>{await (a=m.createElement("script"));e.set("libraries",[...r]+"");for(k in g)e.set(k.replace(/[A-Z]/g,t=>"_"+t[0].toLowerCase()),g[k]);e.set("callback",c+".maps."+q);a.src=`https://maps.${c}apis.com/maps/api/js?`+e;d[q]=f;a.onerror=()=>h=n(Error(p+" could not load."));a.nonce=m.querySelector("script[nonce]")?.nonce||"";m.head.append(a)}));d[l]?console.warn(p+" only loads once. Ignoring:",g):d[l]=(f,...n)=>r.add(f)&&u().then(()=>d[l](f,...n))})
+        ({key: "AIzaSyAhKtmL9NcWLfryjOzZ7HOVVxxNcQF_ZEI", v: "beta",});</script>
+
+    <script src="../src/Colmap.js"></script>
   </body>
 </html>
