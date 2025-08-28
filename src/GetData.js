@@ -3,7 +3,7 @@ import './GetData.css';
 import Colmap from './Colmap';
 
 function GetData({ onDataLoaded }) {
-    const [directoryPath, setDirectoryPath] = useState('');
+    const [directoryPath, setDirectoryPath] = useState('Alexander_Nevsky_Cathedral,_Sofia');
     const [folderNames, setFolderNames] = useState([]);
     const [error, setError] = useState(null);
     const [loading, setLoading] = useState(false);
@@ -119,7 +119,7 @@ function GetData({ onDataLoaded }) {
                     value={directoryPath}
                     onChange={handleInputChange}
                     onKeyDown={handleKeyPress}
-                    placeholder="魔术技巧"
+                    placeholder="Alexander_Nevsky_Cathedral,_Sofia"
                     className="street-input"
                     style={{width: '300px', 
                             padding: '8px', 
@@ -175,8 +175,7 @@ function GetData({ onDataLoaded }) {
                 </button>
             </div>
 
-            {error && <p style={{ color: '#948D8D' }}>Error: {error}</p>}
-
+            {/* {error && <p style={{ color: '#948D8D' }}>Error: {error}</p>} */}
 
             {folderNames.length > 0 && (
                 <div style={{ marginTop: '20px' }}>

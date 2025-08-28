@@ -1,3 +1,37 @@
 .pixel-size-slider {
   color: "secondary";
 }
+
+/* Full-screen overlay */
+#loading_screen {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: #4C4444; /* match your scene background */
+  display: None;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999; /* stay on top */
+  flex-direction: column;
+}
+
+#loading_screen.active {
+  display: flex;
+}
+
+/* Image styling */
+.loading_img {
+  display: None;
+  transition: opacity 0.3s ease;
+  width: 350px;
+  height: 350px;
+  margin: 5px;
+}
+
+/* Highlight active image */
+.loading_img.active {
+  display: flex;
+  opacity: 1;
+}
