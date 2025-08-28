@@ -43,6 +43,27 @@ function Colmap({ onDirectoryChange, onHeadingChange }) {
     const axes = new THREE.AxesHelper( 100 );
     const grid = new THREE.GridHelper( 200, 20 )
     grid.rotation.x = -Math.PI / 2;
+    const manager = new THREE.LoadingManager()
+
+    const loadingScreen = document.getElementById('loading_screen');
+    
+    const loadingImgs = [
+        document.getElementById('loading_img_0'),
+        document.getElementById('loading_img_1'),
+        document.getElementById('loading_img_2'),
+        document.getElementById('loading_img_3')
+    ];
+    manager.onStart = function(url, itemsLoaded, itemsTotal ) {
+        loadingScreen?.classList.add('active')
+        loadingImgs[0]?.classList.add('active');
+    };
+    // manager.onProgress = function ( url, itemsLoaded, itemsTotal ) {
+    //     console.log( 'Loading file: ' + url + '.\nLoaded ' + itemsLoaded + ' of ' + itemsTotal + ' files.' );
+    // };
+    manager.onLoad = function ( ) {
+        loadingScreen?.classList.remove('active')
+        loadingImgs.forEach(img => img.classList.remove('active'));
+    };
 
     const [pxSize, setPXSize] = useState(0.05);
     const [camSize, setCamSize] = useState(2.0);
@@ -74,7 +95,8 @@ function Colmap({ onDirectoryChange, onHeadingChange }) {
         }
 
         dataPoints.current.points.forEach(pt => {
-            positions.push(-pt.x, -pt.y, pt.z);
+            // positions.push(-pt.x, -pt.y, pt.z);
+            positions.push(pt.x, pt.y, pt.z);
             colors.push(pt.r / 255, pt.g / 255, pt.b / 255);
         })
 
@@ -89,7 +111,7 @@ function Colmap({ onDirectoryChange, onHeadingChange }) {
     }
 
     async function renderFused() {
-        const loader = new PLYLoader();
+        const loader = new PLYLoader(manager);
         // console.log("FUSED")
 
         if (currentRender.current === 'fused_points') {
@@ -113,22 +135,30 @@ function Colmap({ onDirectoryChange, onHeadingChange }) {
             `https://im-map.onrender.com/get_fused/${colmap_location}`,
             // `http://127.0.0.1:5000/get_fused/${colmap_location}`,
             (geometry) => {
-            const positions = geometry.attributes.position;
-            for (let i = 0; i < positions.count; i++) {
-                positions.setX(i, -positions.getX(i));
-                positions.setY(i, -positions.getY(i));
+                const positions = geometry.attributes.position;
+                for (let i = 0; i < positions.count; i++) {
+                    // positions.setX(i, -positions.getX(i));
+                    // positions.setY(i, -positions.getY(i));
+                    positions.setX(i, positions.getX(i));
+                    positions.setY(i, positions.getY(i));
+                }
+                positions.needsUpdate = true;
+                geometry.computeVertexNormals();
+                const material = new THREE.PointsMaterial({
+                    size: 0.01,
+                    vertexColors: true,
+                });
+                const points = new THREE.Points(geometry, material);
+                points.name = "renderedPoints";
+                sceneRef.current.add(points);
+            }, 
+            (xhr) => {
+                if (xhr.lengthComputable) {
+                    const percentComplete = Math.round(xhr.loaded / xhr.total * 100);
+                    loadingImgs.forEach((img, i) => i === Math.min(3, Math.round(percentComplete / 25)) ? img.classList.add('active') : img.classList.remove('active'));
+                }
             }
-            positions.needsUpdate = true;
-            geometry.computeVertexNormals();
-            const material = new THREE.PointsMaterial({
-                size: 0.01,
-                vertexColors: true,
-            });
-            const points = new THREE.Points(geometry, material);
-            points.name = "renderedPoints";
-            sceneRef.current.add(points);
-        });
-
+        );
     }
 
     const handleOptionChange = (event, choice) => {
@@ -204,6 +234,7 @@ function Colmap({ onDirectoryChange, onHeadingChange }) {
         if (onDirectoryChange.click || data != null) {
             dataPoints.current = data
         }
+
         setClicked(false);
     }
 
@@ -271,8 +302,8 @@ function Colmap({ onDirectoryChange, onHeadingChange }) {
 
         controls.enableDamping = true;
         controls.dampingFactor = 0.05;
-        // controls.autoRotate = true;
-        // controls.autoRotateSpeed = 3.5;
+        controls.autoRotate = true;
+        controls.autoRotateSpeed = 3.5;
 
         controls.screenSpacePanning = false;
         controls.minDistance = 1;
@@ -324,7 +355,7 @@ function Colmap({ onDirectoryChange, onHeadingChange }) {
 
             dataPoints.current.cameras.forEach(cam => {
                 cameras.push({x: cam.center[0], y: cam.center[1], z: cam.center[2], 
-                              color: new THREE.Color(0xff0000),
+                              color: new THREE.Color(0xffe9e9),
                               qw: cam.qvec[0], qx: cam.qvec[1], qy: cam.qvec[2], qz: cam.qvec[3],
                               rotation: cam.rotation, img_name: cam.image_name });
             })
@@ -343,10 +374,11 @@ function Colmap({ onDirectoryChange, onHeadingChange }) {
                 const dummy = new THREE.Object3D();
 
                 cameras.forEach((data, i) => {
-                    const quaternion = new THREE.Quaternion(data.qx, data.qy, data.qz, data.qw);
+                    const rotation = new THREE.Euler(data.rotation[0], data.rotation[1], data.rotation[2])
 
-                    dummy.quaternion.copy(quaternion)
-                    dummy.position.set(-data.x, -data.y, data.z);
+                    dummy.rotation.copy(rotation)
+                    // dummy.position.set(-data.x, -data.y, data.z);
+                    dummy.position.set(data.x, data.y, data.z);
 
                     dummy.scale.set(0.5, 0.5, 0.5);
                     dummy.updateMatrix();
@@ -442,13 +474,13 @@ function Colmap({ onDirectoryChange, onHeadingChange }) {
                     <span style={{ color: "#4C4444" }}>cam: </span>
                     <NoPhotographyIcon sx={{ color: '#4C4444' }}/>
                     <Slider
-                        defaultValue={2.0} 
+                        defaultValue={4.0} 
                         aria-label="Camera Size" 
                         value={camSize}
                         marks
                         min={0}
-                        max={4.0}
-                        step={0.1}
+                        max={10.0}
+                        step={0.5}
                         valueLabelDisplay="auto"
                         onChange={(event, camSize) => handleCamSliderChange(camSize)} 
                         sx={{
@@ -491,7 +523,7 @@ function Colmap({ onDirectoryChange, onHeadingChange }) {
                     <CameraAltIcon sx={{ color: '#4C4444' }}/>
                 </Stack>
             )}
-
+     
             <Stack 
                     spacing={5}
                     direction="row"
@@ -549,9 +581,27 @@ function Colmap({ onDirectoryChange, onHeadingChange }) {
                 ref={mountRef}
                 style={{
                     width: '100%',
-                    height: '500px',
                     marginTop: '20px',
-            }}></div>)}
+                    position: 'relative',
+                    overflow: 'hidden'
+            }}>
+                <div id="loading_screen"
+                    style={{
+                        position: 'absolute',
+                        top: 0,
+                        left: 0,
+                        width: '100%',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        zIndex: 10,
+                }}>
+                    <img id="loading_img_0" className="loading_img" src={process.env.PUBLIC_URL + "/loading0.png"}/>
+                    <img id="loading_img_1" className="loading_img" src={process.env.PUBLIC_URL + "/loading1.png"}/>
+                    <img id="loading_img_2" className="loading_img" src={process.env.PUBLIC_URL + "/loading2.png"}/>
+                    <img id="loading_img_3" className="loading_img" src={process.env.PUBLIC_URL + "/loading3.png"}/>
+                </div>
+            </div>)}
+
         </Stack>
     )
 }
