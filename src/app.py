@@ -2,6 +2,7 @@ from pathlib import Path
 import os
 from flask import Flask, request, jsonify, send_file, Response
 from flask_cors import CORS
+from flask_socketio import SocketIO
 import requests
 from bs4 import BeautifulSoup
 import json
@@ -12,9 +13,13 @@ from shapely.geometry import Point
 from geopy.distance import geodesic
 from google.cloud import storage
 from google.oauth2 import service_account
+import eventlet
+
+eventlet.monkey_patch()
 
 app = Flask(__name__)
 CORS(app)
+socketio = SocketIO(app, cors_allowed_origins="*")
 
 colmap_location = None
 
@@ -25,6 +30,15 @@ CLOUD_KEY = json.loads(os.environ.get("GOOGLE_CLOUD_JSON"))
 
 credentials = service_account.Credentials.from_service_account_info(CLOUD_KEY)
 client = storage.Client(credentials=credentials, project='im-map')
+
+@app.route("/")
+def index():
+    return {"status": "Flask-SocketIO is running!"}
+
+@socketio.on("connect")
+def handle_connect():
+    print("Client connected")
+    socketio.emit("server_message", {"msg": "Welcome!"})
 
 @app.route('/get_markers', methods=["POST"])
 def get_data():
@@ -154,6 +168,19 @@ def get_colmap_reconstruction():
         # return send_file(f"/home/xtsang/im_map/public/matches/{colmap_location.replace(" ", "_")}/sparse/colmap_model.json")
     except:
         return jsonify(None)
+    
+@app.route('/live_lidar', methods=['POST'])
+def get_lidar_scan():
+    data = request.json
+    socketio.emit("colmap_update", data)
+    with open(f"/home/xtsang/dynamic-box/my_rosbag_reader/my_rosbag_reader/colmap_model.json", "r") as f:
+        colmap_model = json.load(f)
+    print(len(colmap_model["points"]))
+
+    try:
+        return send_file(f"/home/xtsang/dynamic-box/my_rosbag_reader/my_rosbag_reader/colmap_model.json")
+    except:
+        return jsonify(None)
 
 @app.route('/check_location', methods=['POST'])
 def check_location():
@@ -178,7 +205,10 @@ def get_fused(location):
         return None
     return Response(blob.download_as_bytes(), content_type="application/octet-stream")
 
+# ADD smth here that is a callback function that subscribes to colmap_model.json in dynamic-box
 if __name__ == "__main__":
-    app.run(debug=True, host="127.0.0.1", port=5000)
+    # app.run(debug=True, host="127.0.0.1", port=5000)
+    socketio.run(app, host="127.0.0.1", port=5000)
+
     # port = int(os.environ.get("PORT", 5000))
     # app.run(debug=True, host="0.0.0.0", port=port)
