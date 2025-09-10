@@ -17,9 +17,11 @@ import eventlet
 
 eventlet.monkey_patch()
 
+# REST API
 app = Flask(__name__)
 CORS(app)
-socketio = SocketIO(app, cors_allowed_origins="*")
+# socketio = SocketIO(app, cors_allowed_origins=["https://sophtsang.github.io"], async_mode='eventlet')
+socketio = SocketIO(app, cors_allowed_origins="*", async_mode='eventlet')
 
 colmap_location = None
 
@@ -31,14 +33,27 @@ CLOUD_KEY = json.loads(os.environ.get("GOOGLE_CLOUD_JSON"))
 credentials = service_account.Credentials.from_service_account_info(CLOUD_KEY)
 client = storage.Client(credentials=credentials, project='im-map')
 
+### --- WebSocket Endpoints --- ###
+
+@socketio.on('connect')
+def handle_connect():
+    print('React client connected')
+
+@socketio.on('disconnect')
+def handle_disconnect():
+    print('React client disconnected')
+
+@socketio.on('live_lidar_updates')
+def handle_live_lidar_updates(colmap_model):
+    print(f"Received live lidar update from a client: {len(colmap_model["points"])}")
+    # Emit the received data to all other clients subscribed to 'colmap_update'
+    socketio.emit("colmap_update", colmap_model)
+
+### --- REST API Endpoints --- ###
+
 @app.route("/")
 def index():
-    return {"status": "Flask-SocketIO is running!"}
-
-@socketio.on("connect")
-def handle_connect():
-    print("Client connected")
-    socketio.emit("server_message", {"msg": "Welcome!"})
+    return "Socket.IO backend is running!"
 
 @app.route('/get_markers', methods=["POST"])
 def get_data():
@@ -144,9 +159,9 @@ def autocomplete():
     bucket = client.get_bucket('public_matches')
     blobs = bucket.list_blobs()
     current_input = request.get_json().get("path").replace("_", " ")
-
     if len(current_input) > 0:
         possible_locations = np.array(list(set([blob.name.split("/")[0].replace("_", " ") for blob in blobs])))
+        print(possible_locations)
         mask = np.array([locations[:len(current_input)].lower() == current_input.lower() for locations in possible_locations])
         suggestions = [locs[len(current_input):] for locs in possible_locations[mask][:3]]
         return jsonify({"suggestions" : suggestions if len(suggestions) > 0 else [""], 
@@ -166,19 +181,6 @@ def get_colmap_reconstruction():
         # print("SUCCESS")
         return jsonify(blob)
         # return send_file(f"/home/xtsang/im_map/public/matches/{colmap_location.replace(" ", "_")}/sparse/colmap_model.json")
-    except:
-        return jsonify(None)
-    
-@app.route('/live_lidar', methods=['POST'])
-def get_lidar_scan():
-    data = request.json
-    socketio.emit("colmap_update", data)
-    with open(f"/home/xtsang/dynamic-box/my_rosbag_reader/my_rosbag_reader/colmap_model.json", "r") as f:
-        colmap_model = json.load(f)
-    print(len(colmap_model["points"]))
-
-    try:
-        return send_file(f"/home/xtsang/dynamic-box/my_rosbag_reader/my_rosbag_reader/colmap_model.json")
     except:
         return jsonify(None)
 
@@ -206,9 +208,10 @@ def get_fused(location):
     return Response(blob.download_as_bytes(), content_type="application/octet-stream")
 
 # ADD smth here that is a callback function that subscribes to colmap_model.json in dynamic-box
-if __name__ == "__main__":
+if __name__ == "__main__": 
     # app.run(debug=True, host="127.0.0.1", port=5000)
-    socketio.run(app, host="127.0.0.1", port=5000)
+    # socketio.run(app, host="127.0.0.1", port=5000)
 
-    # port = int(os.environ.get("PORT", 5000))
+    port = int(os.environ.get("PORT", 5000))
+    socketio.run(app, host="0.0.0.0", port=port, debug=True)
     # app.run(debug=True, host="0.0.0.0", port=port)
