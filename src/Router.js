@@ -22,7 +22,7 @@ function Router() {
 
   return (
     <Routes>
-        <Route path="/" element={<App openVroom={openVroom} openStreets={openStreets} enableUI={true} />} />
+        <Route path="/im_map" element={<App openVroom={openVroom} openStreets={openStreets} enableUI={true} />} />
         <Route path="/lidar" element={<Lidar />} />
         <Route path="/streets" element={<GetData onDataLoaded={handleMarker}/>} />
     </Routes>
