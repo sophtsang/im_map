@@ -117,7 +117,7 @@ function GetData({ onDataLoaded }) {
                         }}>
                 <h2 className="street-h2">_'s for the streets</h2>
                 
-                <div style={{ position: 'relative', width: '300px', height: 'auto' }}>
+                <div style={{ position: 'relative', width: width-500, height: 'auto' }}>
                     <input
                         type="text"
                         value={directoryPath}
@@ -136,7 +136,7 @@ function GetData({ onDataLoaded }) {
                                 zIndex: 1,
                                 position: 'absolute',
                                 top: 20,
-                                left: width/2-220}}
+                                left: (width-500)/2-220}}
                     />
                     <input
                         type="text"
@@ -144,7 +144,7 @@ function GetData({ onDataLoaded }) {
                         value={suggestion.suggestions[0] !== "" ? directoryPath + suggestion.suggestions[suggestion.index] : ""}
                         style={{position: 'absolute',
                                 top: 20,
-                                left: width/2-220,
+                                left: (width-500)/2-220,
                                 width: '300px',
                                 padding: '8px',
                                 fontFamily: 'Pixelify Sans',
@@ -163,7 +163,7 @@ function GetData({ onDataLoaded }) {
                             disabled={loading} 
                             style={{padding: 0,
                                     cursor: 'pointer',
-                                    marginLeft: width/2+120,
+                                    marginLeft: (width-500)/2+120,
                                     marginBottom: '25px',
                                     background: 'none',
                                     border: 'none',

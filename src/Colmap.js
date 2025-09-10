@@ -67,13 +67,13 @@ function Colmap({ onDirectoryChange, onHeadingChange }) {
 
     const [pxSize, setPXSize] = useState(0.05);
     const [camSize, setCamSize] = useState(2.0);
-    const [width, setWidth] = useState(window.innerWidth);
+    const [width, setWidth] = useState(window.innerWidth - 500);
     const height = window.innerHeight - 275;
 
     window.addEventListener('resize', () => {
-        setWidth(window.innerWidth);
+        setWidth(window.innerWidth - 500);
         if (rendererRef.current) {
-            rendererRef.current.setSize(window.innerWidth, height)
+            rendererRef.current.setSize(window.innerWidth - 500, height)
         }
     })
 
