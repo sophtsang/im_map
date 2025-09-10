@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState, useCallback } from 'react';
+import { useEffect, useRef, useState, useCallback } from 'react';
 import * as THREE from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import { PLYLoader } from 'three/examples/jsm/loaders/PLYLoader'
@@ -81,7 +81,6 @@ function Colmap({ onDirectoryChange, onHeadingChange }) {
         const geometry = new THREE.BufferGeometry();
         const colors = [];
         const positions = [];
-        // console.log("POINT")
 
         currentRender.current = 'points';
 
