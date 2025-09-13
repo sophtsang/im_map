@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef  } from 'react';
-import * as THREE from 'three';
+import { Navigate, useNavigate } from "react-router-dom";
 import './App.css';
 import Draggable from "react-draggable";
 import Stack from '@mui/material/Stack'
@@ -8,13 +8,13 @@ function App({ openVroom, openStreets, enableUI, popup } ) {
   const nodeRef = useRef(null);
   const [lidarHover, setLidarHover] = useState(false);
   const [dgHover, setDGHover] = useState(false);
-
+  const navigate = useNavigate();
   const [inputLat, setInputLat] = useState('40.7887');
   const [inputLng, setInputLng] = useState('-73.9862');
 
   // const [mapLat, setMapLat] = useState(40.7887);
   // const [mapLng, setMapLng] = useState(-73.9862);
-
+  
   // const [marker, setMarker] = useState(null);
 
   const {width, height} = useWindowSize();
@@ -40,6 +40,20 @@ function App({ openVroom, openStreets, enableUI, popup } ) {
 
       return windowSize;
   }
+
+  useEffect(() => {
+    const handleEsc = (event) => {
+      if (event.key === "Escape") {
+        navigate("/im_map");
+      }
+    };
+
+    window.addEventListener("keydown", handleEsc);
+
+    return () => {
+      window.removeEventListener("keydown", handleEsc);
+    };
+  }, []);
 
   // const handleLatChange = (event) => {
   //   setInputLat(event.target.value);
