@@ -11,6 +11,7 @@ function App({ openVroom, openStreets, enableUI, popup } ) {
   const navigate = useNavigate();
   const [inputLat, setInputLat] = useState('40.7887');
   const [inputLng, setInputLng] = useState('-73.9862');
+  const [compFrame, setCompFrame] = useState(0);
 
   // const [mapLat, setMapLat] = useState(40.7887);
   // const [mapLng, setMapLng] = useState(-73.9862);
@@ -86,6 +87,16 @@ function App({ openVroom, openStreets, enableUI, popup } ) {
   //     setMarker(data.doppelgangers_data);
   //   }
   // }
+
+  useEffect(() => {
+    if (compFrame < 11) {
+      const interval = setInterval(() => {
+        setCompFrame((prev) => prev + 1);
+      }, 50);
+
+      return () => clearInterval(interval);
+    }
+  }, [compFrame]);
 
   useEffect(() => {
     document.title = "meow";
@@ -175,7 +186,7 @@ function App({ openVroom, openStreets, enableUI, popup } ) {
             }}
         > 
           <img 
-            src={process.env.PUBLIC_URL + "/computer.png"} 
+            src={process.env.PUBLIC_URL + `/computer${compFrame}.png`}
             alt="computer" 
             className="w-full h-full object-cover rounded-xl shadow-lg" 
             style={{
@@ -186,7 +197,7 @@ function App({ openVroom, openStreets, enableUI, popup } ) {
             }}
           />
 
-          {enableUI && (<div className="absolute top-[20%] left-[20%] w-[60%] h-[60%] bg-transparent z-10">
+          {(compFrame == 11) && enableUI && (<div className="absolute top-[20%] left-[20%] w-[60%] h-[60%] bg-transparent z-10">
             <Draggable 
               nodeRef={nodeRef}
               bounds={{ left: 0, top: 0, right: 620, bottom: 360 }}>       
