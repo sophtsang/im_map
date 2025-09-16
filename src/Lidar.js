@@ -26,9 +26,10 @@ function Lidar() {
     }
 
     const [dataPoints, setDataPoints] = useState(null);
-    const axes = new THREE.AxesHelper( 25 );
-    const grid = new THREE.GridHelper( 40, 40 )
-    grid.rotation.x = -Math.PI / 2;
+    const axes = new THREE.AxesHelper( 10 );
+    axes.rotation.y = Math.PI / 2;
+    const grid = new THREE.GridHelper( 10, 20 )
+    grid.rotation.z = -Math.PI / 2;
 
     const [pxSize, setPXSize] = useState(0.05);
     const [width, setWidth] = useState(window.innerWidth-500);
@@ -41,28 +42,7 @@ function Lidar() {
         }
     })
 
-    useEffect(() => {
-        const camera = new THREE.PerspectiveCamera(120, width / height, 0.1, 1000);
-        camera.position.set(-10, 10, 10)
-        cameraRef.current = camera
-        socket.on("colmap_update", (data) => {
-            setDataPoints(data);
-        });
-
-        return () => {
-            socket.off("colmap_update");
-        };
-    }, []);
-
-    const handleSliderChange = useCallback((pxSize) => {
-        setPXSize(pxSize);
-        if (materialRef.current) {
-            materialRef.current.size = pxSize;
-        }
-    }, [setPXSize]);
-
-    useEffect(() => {
-        if (!dataPoints) return;
+    const renderScene = () => {
         if (rendererRef.current) {
             try {
                 rendererRef.current.dispose();
@@ -87,8 +67,16 @@ function Lidar() {
         
         scene.background = new THREE.Color(0x4C4444);
 
+        scene.rotation.z = Math.PI / 2;
+        sceneRef.current = scene;
+
         const renderer = new THREE.WebGLRenderer({ antialias: true });
-        renderer.setSize(width, height);
+        renderer.setSize(window.innerWidth, height);
+
+        const camera = new THREE.PerspectiveCamera(120, width / height, 0.1, 1000);
+        camera.position.set(-1, 1, 1)
+        cameraRef.current = camera
+
         const controls = new OrbitControls(cameraRef.current, renderer.domElement);
 
         controls.enableDamping = true;
@@ -102,16 +90,47 @@ function Lidar() {
 
         mountRef.current.appendChild(renderer.domElement);
         rendererRef.current = renderer;
-        scene.rotation.x = -Math.PI / 2;
-        sceneRef.current = scene;
         controlsRef.current = controls;
 
+        socket.on("colmap_update", (data) => {
+            setDataPoints(data);
+        });
+
+        rendererRef.current.render(sceneRef.current, cameraRef.current);
+    }
+
+    useEffect(() => {
+        renderScene();
+
+        const animate = () => {
+            requestAnimationFrame(animate);
+            controlsRef.current.update();
+            rendererRef.current.render(sceneRef.current, cameraRef.current);
+        };
+        animate();
+
+        return () => {
+            socket.off("colmap_update");
+        };
+    }, []);
+
+    const handleSliderChange = useCallback((pxSize) => {
+        setPXSize(pxSize);
+        if (materialRef.current) {
+            materialRef.current.size = pxSize;
+        }
+    }, [setPXSize]);
+
+    useEffect(() => {
+        if (!dataPoints) return;
+
+        renderScene();
         renderPoints();
 
         const animate = () => {
             requestAnimationFrame(animate);
-            controls.update();
-            renderer.render(scene, cameraRef.current);
+            controlsRef.current.update();
+            rendererRef.current.render(sceneRef.current, cameraRef.current);
         };
         animate();
     }, [dataPoints]);
@@ -223,6 +242,7 @@ function Lidar() {
 
                 </Stack>
             </div>}
+            animate={false}
         />
     )
 }

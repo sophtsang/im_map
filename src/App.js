@@ -9,8 +9,8 @@ function App({ openVroom, openStreets, enableUI, popup, animate } ) {
   const [lidarHover, setLidarHover] = useState(false);
   const [dgHover, setDGHover] = useState(false);
   const navigate = useNavigate();
-  const [inputLat, setInputLat] = useState('40.7887');
-  const [inputLng, setInputLng] = useState('-73.9862');
+  // const [inputLat, setInputLat] = useState('40.7887');
+  // const [inputLng, setInputLng] = useState('-73.9862');
   const [compFrame, setCompFrame] = useState(animate ? 0 : 11);
 
   // const [mapLat, setMapLat] = useState(40.7887);
@@ -19,7 +19,7 @@ function App({ openVroom, openStreets, enableUI, popup, animate } ) {
   // const [marker, setMarker] = useState(null);
 
   const {width, height} = useWindowSize();
-  const [scale, setScale] = useState(1);
+  const [scale, setScale] = useState(Math.min(10, Math.floor(10 * (window.innerWidth / 1520)))/10);
 
   function useWindowSize() {
       const [windowSize, setWindowSize] = useState({
