@@ -42,7 +42,7 @@ function Lidar() {
         }
     })
 
-    const renderScene = () => {
+    const renderScene = (firstFrame = false) => {
         if (rendererRef.current) {
             try {
                 rendererRef.current.dispose();
@@ -73,9 +73,11 @@ function Lidar() {
         const renderer = new THREE.WebGLRenderer({ antialias: true });
         renderer.setSize(window.innerWidth, height);
 
-        const camera = new THREE.PerspectiveCamera(120, width / height, 0.1, 1000);
-        camera.position.set(-1, 1, 1)
-        cameraRef.current = camera
+        if (firstFrame) {
+            const camera = new THREE.PerspectiveCamera(120, width / height, 0.1, 1000);
+            camera.position.set(-1, 1, 1)
+            cameraRef.current = camera
+        }
 
         const controls = new OrbitControls(cameraRef.current, renderer.domElement);
 
@@ -100,7 +102,7 @@ function Lidar() {
     }
 
     useEffect(() => {
-        renderScene();
+        renderScene(true);
 
         const animate = () => {
             requestAnimationFrame(animate);
