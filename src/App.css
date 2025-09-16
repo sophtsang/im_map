@@ -21,7 +21,6 @@
   color: #BEB9B9
 }
 
-
 .teleportation-button:hover{
   color: #BEB9B9
 }
@@ -49,3 +48,119 @@
     transform: rotate(360deg);
   }
 }
+
+Stack container equivalent
+.stack-row {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 140px;
+}
+
+/* Homepage wrapper */
+/* .homepage {
+  height: 100%;
+  position: relative;
+} */
+
+/* Computer image */
+/* .computer-img {
+  z-index: 0;
+  position: absolute;
+  width: 1520px;
+  left: 50%;
+  transform: translateX(-50%);
+  object-fit: cover;
+} */
+
+/* Transparent overlay */
+/* .overlay {
+  position: absolute;
+  top: 20%;
+  left: 20%;
+  width: 60%;
+  height: 60%;
+  background: transparent;
+  z-index: 10;
+} */
+
+/* Draggable wrapper */
+/* .draggable {
+  position: absolute;
+  cursor: pointer;
+} */
+
+/* Buttons inside draggable */
+/* .draggable-btn {
+  background: none;
+  border: none;
+  position: absolute;
+  z-index: 2;
+  cursor: pointer;
+  transition: transform 0.2s ease-in-out;
+} */
+
+/* Taxi button specific position */
+.taxi-btn:hover {
+  transform: scale(1.1); 
+  background: rgba(255, 255, 255, 0.25); 
+  box-shadow: 0 2px 2px rgba(0,0,0,0.5);
+  transition: transform 0.2s ease-in-out;
+}
+
+/* Racecar button specific position */
+.racecar-btn:hover {
+  transform: scale(1.1); 
+  background: rgba(255, 255, 255, 0.25); 
+  box-shadow: 0 2px 2px rgba(0,0,0,0.5);
+  transition: transform 0.2s ease-in-out;
+}
+
+/* Icon images */
+/* .icon-img {
+  position: relative;
+  width: 159.5px;
+  height: auto;
+  transition: transform 0.2s ease-in-out;
+} */
+
+/* .icon-img:hover {
+  transform: scale(1.1);
+  background: rgba(255, 255, 255, 0.1);
+  box-shadow: 0 2px 2px rgba(0,0,0,0.5);
+} */
+
+/* Hover popups */
+/* .dg-hover-img {
+  position: absolute;
+  top: 60.1px;
+  left: calc(50% - 628.7px);
+  height: 109.5px;
+  pointer-events: none;
+  z-index: 1;
+} */
+
+/* .lidar-hover-img {
+  position: absolute;
+  top: 60.1px;
+  left: calc(50% - 359px);
+  height: 109.5px;
+  pointer-events: none;
+  z-index: 2;
+} */
+
+/* Popup browser */
+/* .popup.browser {
+  position: absolute;
+  background: white;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+} */
+
+/* Drag handle */
+/* .drag-handle {
+  cursor: move;
+  padding: 10px;
+  background: #4C4444;
+} */

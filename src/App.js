@@ -4,14 +4,14 @@ import './App.css';
 import Draggable from "react-draggable";
 import Stack from '@mui/material/Stack'
 
-function App({ openVroom, openStreets, enableUI, popup } ) {
+function App({ openVroom, openStreets, enableUI, popup, animate } ) {
   const nodeRef = useRef(null);
   const [lidarHover, setLidarHover] = useState(false);
   const [dgHover, setDGHover] = useState(false);
   const navigate = useNavigate();
   const [inputLat, setInputLat] = useState('40.7887');
   const [inputLng, setInputLng] = useState('-73.9862');
-  const [compFrame, setCompFrame] = useState(0);
+  const [compFrame, setCompFrame] = useState(animate ? 0 : 11);
 
   // const [mapLat, setMapLat] = useState(40.7887);
   // const [mapLng, setMapLng] = useState(-73.9862);
@@ -19,6 +19,7 @@ function App({ openVroom, openStreets, enableUI, popup } ) {
   // const [marker, setMarker] = useState(null);
 
   const {width, height} = useWindowSize();
+  const [scale, setScale] = useState(1);
 
   function useWindowSize() {
       const [windowSize, setWindowSize] = useState({
@@ -28,6 +29,7 @@ function App({ openVroom, openStreets, enableUI, popup } ) {
 
       useEffect(() => {
           const handleResize = () => {
+              setScale(Math.min(10, Math.floor(10 * (window.innerWidth / 1520)))/10)
               setWindowSize({
                   width: window.innerWidth,
                   height: window.innerHeight,
@@ -192,20 +194,20 @@ function App({ openVroom, openStreets, enableUI, popup } ) {
             style={{
               zIndex: 0,
               position: 'absolute',
-              width: 1520,
-              left: width/2 - 760
+              width: 1520 * scale,
+              left: width/2 - 760 * scale
             }}
           />
 
           {(compFrame == 11) && enableUI && (<div className="absolute top-[20%] left-[20%] w-[60%] h-[60%] bg-transparent z-10">
             <Draggable 
               nodeRef={nodeRef}
-              bounds={{ left: 0, top: 0, right: 620, bottom: 360 }}>       
-              <div className="absolute cursor-pointer"
+              bounds={{ left: 0, top: 0, right: 620 * scale, bottom: 360 * scale }}>       
+              <div className="draggable"
                   ref={nodeRef}
               >
                 <button 
-                  className="absolute top-[30%] left-[25%]"
+                  className="draggable-btn"
                   onDoubleClick={openStreets}
                   onMouseEnter={() => setDGHover(true)}
                   onMouseLeave={() => setDGHover(false)}
@@ -214,16 +216,16 @@ function App({ openVroom, openStreets, enableUI, popup } ) {
                       border: 'none',
                       zIndex: 1,
                       position: 'absolute',
-                      top: 149.5,
-                      left: width/2 - 415.7
+                      top: 149.5 * scale,
+                      left: width/2 - 415.7 * scale
                     }}
                 >
                   <img 
                     src={process.env.PUBLIC_URL + "/taxi.png"} 
                     alt="_'s for the streets" 
-                    className="w-16 h-16 hover:scale-110 transition-transform"
+                    className="taxi-btn"
                     style={{
-                      width: 159.5
+                      width: 159.5 * scale
                     }}
                   />
                 </button>
@@ -234,9 +236,9 @@ function App({ openVroom, openStreets, enableUI, popup } ) {
                   className="w-16 h-16 hover:scale-110 transition-transform"
                   style={{
                     position: 'absolute',
-                    top: 60.1,
-                    left: width/2-628.7,
-                    height: 109.5,
+                    top: 60.1 * scale,
+                    left: width/2- 628.7 * scale,
+                    height: 109.5 * scale,
                     pointerEvents: 'none',
                     zIndex: 1
                   }}
@@ -246,12 +248,12 @@ function App({ openVroom, openStreets, enableUI, popup } ) {
 
             <Draggable 
               nodeRef={nodeRef}
-              bounds={{ left: -180.75, top: 0, right: 440.5, bottom: 360 }}
+              bounds={{ left: -180.75 * scale, top: 0, right: 440.5 * scale, bottom: 360 * scale }}
             >       
-              <div className="absolute cursor-pointer"
+              <div className="draggable-btn"
                   ref={nodeRef}
               >
-                <button className="absolute top-[30%] left-[55%]"
+                <button className="draggable-btn"
                         onDoubleClick={openVroom} 
                         onMouseEnter={() => setLidarHover(true)}
                         onMouseLeave={() => setLidarHover(false)}
@@ -260,16 +262,16 @@ function App({ openVroom, openStreets, enableUI, popup } ) {
                           border: 'none',
                           zIndex: 2,
                           position: 'absolute',
-                          top: 149.5,
-                          left: width/2 - 236
+                          top: 149.5 * scale,
+                          left: width/2 - 236 * scale
                         }}
                 >
                   <img 
                     src={process.env.PUBLIC_URL + "/racecar.png"} 
                     alt="vroom vroom" 
-                    className="w-16 h-16 hover:scale-110 transition-transform"
+                    className="racecar-btn"
                     style={{
-                      width: 159.5
+                      width: 159.5 * scale
                     }}
                   />
                 </button>
@@ -280,9 +282,9 @@ function App({ openVroom, openStreets, enableUI, popup } ) {
                   className="w-16 h-16 hover:scale-110 transition-transform"
                   style={{
                     position: 'absolute',
-                    top: 60.1,
-                    left: width/2-359,
-                    height: 109.5,
+                    top: 60.1 * scale,
+                    left: width/2- 359 * scale,
+                    height: 109.5 * scale,
                     pointerEvents: 'none',
                     zIndex: 1
                   }}
