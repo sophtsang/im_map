@@ -4,23 +4,19 @@ import './App.css';
 import Draggable from "react-draggable";
 import Stack from '@mui/material/Stack'
 
-function App({ openVroom, openStreets, enableUI, popup, animate } ) {
+function App({ openDict, enableUI, popup, animate } ) {
   const nodeRef = useRef(null);
   const [lidarHover, setLidarHover] = useState(false);
   const [dgHover, setDGHover] = useState(false);
+  const [paintHover, setPaintHover] = useState(false);
   const navigate = useNavigate();
-  // const [inputLat, setInputLat] = useState('40.7887');
-  // const [inputLng, setInputLng] = useState('-73.9862');
   const [compFrame, setCompFrame] = useState(animate ? 0 : 11);
 
-  // const [mapLat, setMapLat] = useState(40.7887);
-  // const [mapLng, setMapLng] = useState(-73.9862);
-  
-  // const [marker, setMarker] = useState(null);
-
+  const holdTimer = useRef(null);
   const {width, height} = useWindowSize();
   const [scale, setScale] = useState(Math.min(10, Math.floor(10 * (window.innerWidth / 1520)))/10);
-
+  const [dragEnabled, setDragEnabled] = useState(false);
+ 
   function useWindowSize() {
       const [windowSize, setWindowSize] = useState({
           width: window.innerWidth,
@@ -58,37 +54,10 @@ function App({ openVroom, openStreets, enableUI, popup, animate } ) {
     };
   }, []);
 
-  // const handleLatChange = (event) => {
-  //   setInputLat(event.target.value);
-  // };
-
-  // const handleLngChange = (event) => {
-  //   setInputLng(event.target.value);
-  // }
-
-  // const handleSubmit = (event) => {
-  //   event.preventDefault(); // Prevent default form submission behavior (page reload)
-
-  //   const newLat = parseFloat(inputLat);
-  //   const newLng = parseFloat(inputLng);
-
-  //   // Basic validation
-  //   if (isNaN(newLat) || isNaN(newLng) || newLat < -90 || newLat > 90 || newLng < -180 || newLng > 180) {
-  //     alert('Please enter valid latitude (-90 to 90) and longitude (-180 to 180).');
-  //     return;
-  //   }
-
-  //   setMapLat(newLat);
-  //   setMapLng(newLng);
-  // };
-
-  // const handleMarker = (data) => {
-  //   if (data.location_data) {
-  //     setMapLat(data.location_data.lat);
-  //     setMapLng(data.location_data.lng);
-  //     setMarker(data.doppelgangers_data);
-  //   }
-  // }
+  const handleCtrl = () => {
+    console.log(!dragEnabled)
+    setDragEnabled(!dragEnabled)
+  };
 
   useEffect(() => {
     if (compFrame < 11) {
@@ -102,78 +71,11 @@ function App({ openVroom, openStreets, enableUI, popup, animate } ) {
 
   useEffect(() => {
     document.title = "meow";
+    document.body.style.overflow = "hidden";
   }, []);
 
   return (
     <div className="App">
-      {/* <h1 className="map-title">i'm map?</h1> */}
-
-      {/* <section style={{ marginBottom: '40px', 
-                        padding: '10px', 
-                        border: 'none'
-                      }}>
-        <form onSubmit={handleSubmit} style={{ marginBottom: '20px',
-                                               color: '#3E3333'
-                                              }}>
-          <label htmlFor="latInput">lat:</label>
-          <input
-            type="text"
-            id="latInput"
-            value={inputLat}
-            onChange={handleLatChange}
-            placeholder="40.7557"
-            style={{width: 150,
-                    marginRight: '10px', 
-                    padding: '8px', 
-                    border: 'none',
-                    fontFamily: 'Pixelify Sans',
-                    fontSize: '24px',
-                    color: "#948D8D",
-                    outline: 'none'
-                  }}
-          />
-
-          <label htmlFor="lngInput">lng: </label>
-          <input
-            type="text"
-            id="lngInput"
-            value={inputLng}
-            onChange={handleLngChange}
-            placeholder="-73.9562"
-            style={{width: 150,
-                    marginRight: '10px', 
-                    padding: '8px', 
-                    border: 'none',
-                    fontFamily: 'Pixelify Sans',
-                    fontSize: '24px',
-                    color: "#948D8D",
-                    outline: 'none'
-                  }}
-          />
-
-          <button type="submit" 
-                  style={{padding: '8px 15px', 
-                          cursor: 'pointer',
-                          fontFamily: "LanaPixel",
-                          fontSize: '24px',
-                          border: 'none',
-                          color: '#3E3333',
-                          background: 'none' }}>
-            <span className="teleportation-button">传送</span>
-          </button>
-        </form>
-      </section> */}
-
-      {/* {googleMapsApiKey ? (
-        <Map3D 
-          lat={mapLat} 
-          lng={mapLng}
-          apiKey={googleMapsApiKey}
-          zoom={20}
-          markers={marker} />
-      ) : (
-        <p>Google Maps API Key is missing. Please set REACT_APP_Maps_API_KEY in your .env file.</p>
-      )} */}
 
       <Stack 
         direction="row"
@@ -182,9 +84,10 @@ function App({ openVroom, openStreets, enableUI, popup, animate } ) {
             mb: 140
         }}
       >
+
         <div className="computer screen"
             style={{ 
-                position: 'relative',
+                position: 'relative'
             }}
         > 
           <img 
@@ -196,19 +99,20 @@ function App({ openVroom, openStreets, enableUI, popup, animate } ) {
               position: 'absolute',
               width: 1520 * scale,
               left: width/2 - 760 * scale
-            }}
+            }}scal
           />
 
           {(compFrame == 11) && enableUI && (<div className="absolute top-[20%] left-[20%] w-[60%] h-[60%] bg-transparent z-10">
-            <Draggable 
+            <Draggable
+              cancel={dragEnabled ? "" : ".draggable-btn"}
               nodeRef={nodeRef}
               bounds={{ left: 0, top: 0, right: 620 * scale, bottom: 360 * scale }}>       
               <div className="draggable"
                   ref={nodeRef}
               >
                 <button 
-                  className="draggable-btn"
-                  onDoubleClick={openStreets}
+                  className={`draggable-btn ${dragEnabled ? "drag-active" : ""}`}
+                  onDoubleClick={openDict["openStreets"]}
                   onMouseEnter={() => setDGHover(true)}
                   onMouseLeave={() => setDGHover(false)}
                   style={{
@@ -246,15 +150,16 @@ function App({ openVroom, openStreets, enableUI, popup, animate } ) {
               </div>
             </Draggable>
 
-            <Draggable 
+            {/* <Draggable 
+              cancel={dragEnabled ? "" : ".draggable-btn"}
               nodeRef={nodeRef}
               bounds={{ left: -180.75 * scale, top: 0, right: 440.5 * scale, bottom: 360 * scale }}
             >       
               <div className="draggable-btn"
                   ref={nodeRef}
               >
-                <button className="draggable-btn"
-                        onDoubleClick={openVroom} 
+                <button className={`draggable-btn ${dragEnabled ? "drag-active" : ""}`}
+                        onDoubleClick={openDict["openVroom"]} 
                         onMouseEnter={() => setLidarHover(true)}
                         onMouseLeave={() => setLidarHover(false)}
                         style={{
@@ -290,7 +195,56 @@ function App({ openVroom, openStreets, enableUI, popup, animate } ) {
                   }}
                 />)}
               </div>
+            </Draggable> */}
+
+            <Draggable 
+              cancel={dragEnabled ? "" : ".draggable-btn"}
+              nodeRef={nodeRef}
+              bounds={{ left: -180.75 * scale, top: 0, right: 440.5 * scale, bottom: 360 * scale }}
+            >       
+              <div className="draggable-btn"
+                  ref={nodeRef}
+              >
+                <button className={`draggable-btn ${dragEnabled ? "drag-active" : ""}`}
+                        onDoubleClick={openDict["openPaint"]} 
+                        onMouseEnter={() => setPaintHover(true)}
+                        onMouseLeave={() => setPaintHover(false)}
+                        style={{
+                          background: 'none',
+                          border: 'none',
+                          zIndex: 3,
+                          position: 'absolute',
+                          top: 149.5 * scale,
+                          left: width/2 - 236 * scale
+                        }}
+                >
+                  <img 
+                    src={process.env.PUBLIC_URL + "/racecar.png"} 
+                    alt="paint" 
+                    className="paint-btn"
+                    style={{
+                      width: 159.5 * scale
+                    }}
+                  />
+                </button>
+
+                {paintHover && (<img 
+                  src={process.env.PUBLIC_URL + "/lidar.png"} 
+                  alt="_'s for the streets" 
+                  className="w-16 h-16 hover:scale-110 transition-transform"
+                  style={{
+                    position: 'absolute',
+                    top: 60.1 * scale,
+                    left: width/2- 359 * scale,
+                    height: 109.5 * scale,
+                    pointerEvents: 'none',
+                    zIndex: 1
+                  }}
+                />)}
+              </div>
             </Draggable>
+
+            
           </div>)}
 
           {/* Projects in the portfolio will be displayed like popup browsers that are draggable.
@@ -305,9 +259,11 @@ function App({ openVroom, openStreets, enableUI, popup, animate } ) {
           {popup != undefined && (<Draggable
             nodeRef={nodeRef}
             bounds={{ left: 0, top: 0, right: 620, bottom: 360 }}
-            handle=".drag-handle"  
+            handle=".drag-handle" 
           >
-            <div className="popup browser" ref={nodeRef}>
+            <div className="popup browser" 
+              ref={nodeRef}
+            >
               {/* popup handle to drag */}
               <div className="drag-handle cursor-move"
                   style={{padding: 10, background: "#4C4444"}}></div>
@@ -318,6 +274,34 @@ function App({ openVroom, openStreets, enableUI, popup, animate } ) {
           </Draggable>)}
 
         </div>
+
+        <button className="control-btn"
+            onClick={handleCtrl} 
+            style={{
+              background: 'none',
+              border: 'none'
+            }}
+        >
+          {dragEnabled && (<img 
+              src={process.env.PUBLIC_URL + "/narwhal.png"} 
+              alt="narwhal" 
+              className="narwhal"
+              style={{
+                width: 159.5 * scale
+              }}
+            />)
+          }
+
+          {!dragEnabled && (<img 
+              src={process.env.PUBLIC_URL + "/favicon.ico"} 
+              alt="childe" 
+              className="childe"
+              style={{
+                width: 159.5 * scale
+              }}
+            />)
+          }
+        </button>
 
       </Stack>
 
