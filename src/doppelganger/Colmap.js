@@ -13,10 +13,12 @@ import StopIcon from '@mui/icons-material/Stop';
 import SquareIcon from '@mui/icons-material/Square';
 import TextField from '@mui/material/TextField';
 import Autocomplete from '@mui/material/Autocomplete';
+import Draggable from "react-draggable";
 
 import './Colmap.css'
 
 function Colmap({ onDirectoryChange, onHeadingChange }) {
+    const nodeRef = useRef(null);
     const mountRef = useRef(null);
     const rendererRef = useRef(null);
     const sceneRef = useRef(null);
@@ -27,6 +29,7 @@ function Colmap({ onDirectoryChange, onHeadingChange }) {
     const options = useRef({});
     const [location, setLocation] = useState(null);
     const [heading, setHeading] = useState(0);
+    const [selectedFacade, setSelectedFacade] = useState(null);
     const fuseSwitch = useRef(<FormControlLabel disabled control={
                     <Switch 
                         sx={{ color: '#4C4444' }}
@@ -67,15 +70,16 @@ function Colmap({ onDirectoryChange, onHeadingChange }) {
 
     const [pxSize, setPXSize] = useState(0.05);
     const [camSize, setCamSize] = useState(2.0);
-    const [width, setWidth] = useState(window.innerWidth - 500);
-    const height = window.innerHeight - 275;
+    // const [width, setWidth] = useState(window.innerWidth - 500);
+    const [width, setWidth] = useState(1000);
+    const height = 523;
 
-    window.addEventListener('resize', () => {
-        setWidth(window.innerWidth - 500);
-        if (rendererRef.current) {
-            rendererRef.current.setSize(window.innerWidth - 500, height)
-        }
-    })
+    // window.addEventListener('resize', () => {
+    //     setWidth(window.innerWidth - 500);
+    //     if (rendererRef.current) {
+    //         rendererRef.current.setSize(window.innerWidth - 500, height)
+    //     }
+    // })
 
     function renderPoints() {
         const geometry = new THREE.BufferGeometry();
@@ -160,9 +164,25 @@ function Colmap({ onDirectoryChange, onHeadingChange }) {
         );
     }
 
+    const getPreferredFacade = useCallback((facades = []) => {
+        if (!Array.isArray(facades)) {
+            return null;
+        }
+
+        return facades.includes('scaled') ? 'scaled' : (facades[0] ?? null);
+    }, []);
+
+    const syncFacadeChoice = useCallback((facades = []) => {
+        const preferred = getPreferredFacade(facades);
+        options.current = { options: facades, choice: preferred };
+        setSelectedFacade(preferred);
+        return preferred;
+    }, [getPreferredFacade]);
+
     const handleOptionChange = (event, choice) => {
         if (choice) {
             options.current = {options: options.current.options, choice: choice}
+            setSelectedFacade(choice);
             checkLocation(onDirectoryChange.location + "/sparse/" + choice)
             getLocation(choice)
         }
@@ -188,8 +208,11 @@ function Colmap({ onDirectoryChange, onHeadingChange }) {
 
             const data = await response.json();
             if (data.options && onDirectoryChange.click) {
-                options.current = { options: data.options, choice: data.options[0] };
-            } 
+                const preferred = syncFacadeChoice(data.options);
+                if (preferred) {
+                    getLocation(preferred);
+                }
+            }
 
             if (data.exists) {
                 fuseSwitch.current = <Switch 
@@ -230,6 +253,7 @@ function Colmap({ onDirectoryChange, onHeadingChange }) {
         }
 
         const data = await response.json();
+        console.log(data)
         if (onDirectoryChange.click || data != null) {
             dataPoints.current = data
         }
@@ -268,9 +292,9 @@ function Colmap({ onDirectoryChange, onHeadingChange }) {
     useEffect(() => {
         if (onDirectoryChange.click) {
             setLocation(onDirectoryChange.location);
-            getLocation('scaled');
+            checkLocation(onDirectoryChange.location);
         }
-    }, [onDirectoryChange.click, options.current.choice]);
+    }, [onDirectoryChange.click, onDirectoryChange.location]);
 
     useEffect(() => {
         if(!dataPoints.current) return;
@@ -396,16 +420,29 @@ function Colmap({ onDirectoryChange, onHeadingChange }) {
     return (
         <Stack sx={{ 
                     alignItems: 'center',
-                    mb: 1
+                    mb: 1,
+                    position: 'relative',
+                    zIndex: 1,
+                    width: 854.5,
+                    transform: 'translate(8.5%)'
                 }}
         >
+            {/* {!dataPoints.current && (
+                <span>Rendering of the Structure-from-Motion (SfM) pipeline that takes in multiview internet images of visually disambiguous scenes across the globe and outputs a dense, robust 3D reconstruction.
+
+Given visually disambigous scenes, this pipeline curates a Google Maps Street View panorama dataset capturing the diverse facades of such scene from different camera viewing directions and locations.</span>
+            )} */}
+
             {dataPoints.current && rendererRef.current && (
                 <Stack 
                     spacing={2}
                     direction="row"
                     sx={{ 
                         alignItems: 'center',
-                        mb: 1
+                        mb: 1,
+                        position: 'relative',
+                        zIndex: 1,
+                        top: 38.5,
                     }}
                 >
                     <span style={{ color: "#4C4444" }}>pxls:</span>
@@ -467,7 +504,10 @@ function Colmap({ onDirectoryChange, onHeadingChange }) {
                     direction="row"
                     sx={{ 
                         alignItems: 'center',
-                        mb: 1
+                            mb: 1,
+                            position: 'relative',
+                            zIndex: 1,
+                            top: 41.0,
                     }}
                 >
                     <span style={{ color: "#4C4444" }}>cam: </span>
@@ -522,7 +562,24 @@ function Colmap({ onDirectoryChange, onHeadingChange }) {
                     <CameraAltIcon sx={{ color: '#4C4444' }}/>
                 </Stack>
             )}
-     
+
+            {/* <Draggable
+                nodeRef={nodeRef}
+            >
+                <div
+                    ref={nodeRef}
+                >
+                    <img 
+                        src={process.env.PUBLIC_URL + "/assets/tab.png"} 
+                        alt="tab" 
+                        className="tab"
+                        style={{
+                        // width: '100%'
+                        }}
+                    />
+                </div>
+            </Draggable> */}
+
             <Stack 
                     spacing={5}
                     direction="row"
@@ -531,10 +588,13 @@ function Colmap({ onDirectoryChange, onHeadingChange }) {
                         mb: 1
                     }}
             >
-                {dataPoints.current && rendererRef.current && options.current && (
+
+                {/* {dataPoints.current && rendererRef.current && options.current && (
                     <Autocomplete
                         disablePortal
                         options={options.current.options}
+                        value={selectedFacade}
+                        isOptionEqualToValue={(option, value) => option === value}
                         sx={{ width: 150,
                               fontFamily: 'Pixelify Sans'
                         }}
@@ -558,9 +618,9 @@ function Colmap({ onDirectoryChange, onHeadingChange }) {
                                                 />
                                     }
                     />
-                )}
+                )} */}
                 
-                {dataPoints.current && rendererRef.current && (
+                {/* {dataPoints.current && rendererRef.current && (
                     <Grid component="label" container alignItems="center" spacing={1}>
                         <Grid item
                               sx={{
@@ -572,7 +632,7 @@ function Colmap({ onDirectoryChange, onHeadingChange }) {
                                 color: '#948D8D'
                               }}>dens</Grid>
                     </Grid>
-                )}
+                )} */}
 
             </Stack>
 
@@ -580,9 +640,9 @@ function Colmap({ onDirectoryChange, onHeadingChange }) {
                 ref={mountRef}
                 style={{
                     width: '100%',
-                    marginTop: '20px',
+                    marginTop: '38.5px',
                     position: 'relative',
-                    overflow: 'hidden'
+                    overflow: 'hidden',
             }}>
                 <div id="loading_screen"
                     style={{
@@ -594,10 +654,10 @@ function Colmap({ onDirectoryChange, onHeadingChange }) {
                         justifyContent: 'center',
                         zIndex: 10,
                 }}>
-                    <img id="loading_img_0" className="loading_img" src={process.env.PUBLIC_URL + "/loading0.png"}/>
-                    <img id="loading_img_1" className="loading_img" src={process.env.PUBLIC_URL + "/loading1.png"}/>
-                    <img id="loading_img_2" className="loading_img" src={process.env.PUBLIC_URL + "/loading2.png"}/>
-                    <img id="loading_img_3" className="loading_img" src={process.env.PUBLIC_URL + "/loading3.png"}/>
+                    <img id="loading_img_0" className="loading_img" src={process.env.PUBLIC_URL + "/assets/loading0.png"}/>
+                    <img id="loading_img_1" className="loading_img" src={process.env.PUBLIC_URL + "/assets/loading1.png"}/>
+                    <img id="loading_img_2" className="loading_img" src={process.env.PUBLIC_URL + "/assets/loading2.png"}/>
+                    <img id="loading_img_3" className="loading_img" src={process.env.PUBLIC_URL + "/assets/loading3.png"}/>
                 </div>
             </div>)}
 
@@ -606,3 +666,7 @@ function Colmap({ onDirectoryChange, onHeadingChange }) {
 }
 
 export default Colmap;
+
+
+// make a small widget that displays 3d x y z axis and allows users to click which plane they want their gird to be on:
+// if default is xy-plane -> user clicks xz -> orientation flips to xz plane w/ new grid

@@ -1,0 +1,11 @@
+Model Information:
+* title:	Littlest Tokyo Sunset - 3D Editor Challenge
+* source:	https://sketchfab.com/3d-models/littlest-tokyo-sunset-3d-editor-challenge-6fb1409c2459463ea8a5781dbf31a0a2
+* author:	Phil_XG (https://sketchfab.com/phil_xg)
+
+Model License:
+* license type:	CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
+* requirements:	Author must be credited. Commercial use is allowed.
+
+If you use this 3D model in your project be sure to copy paste this credit wherever you share it:
+This work is based on "Littlest Tokyo Sunset - 3D Editor Challenge" (https://sketchfab.com/3d-models/littlest-tokyo-sunset-3d-editor-challenge-6fb1409c2459463ea8a5781dbf31a0a2) by Phil_XG (https://sketchfab.com/phil_xg) licensed under CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)

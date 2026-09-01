@@ -1,11 +1,13 @@
-import { useState, useEffect, useRef  } from 'react';
+import { useState, useEffect, useLayoutEffect, useRef  } from 'react';
 import { Navigate, useNavigate } from "react-router-dom";
 import './App.css';
 import Draggable from "react-draggable";
 import Stack from '@mui/material/Stack'
 
-function App({ openDict, enableUI, popup, animate } ) {
+function App({ openDict, enableUI, popup, animate, responsivePopup } ) {
   const nodeRef = useRef(null);
+  const screenRef = useRef(null);
+  const popupInitialized = useRef(false);
   const [lidarHover, setLidarHover] = useState(false);
   const [dgHover, setDGHover] = useState(false);
   const [paintHover, setPaintHover] = useState(false);
@@ -16,7 +18,21 @@ function App({ openDict, enableUI, popup, animate } ) {
   const {width, height} = useWindowSize();
   const [scale, setScale] = useState(Math.min(10, Math.floor(10 * (window.innerWidth / 1520)))/10);
   const [dragEnabled, setDragEnabled] = useState(false);
- 
+
+  // Only used when `responsivePopup` is set (currently just the streets/
+  // Colmap+GetData widget) — keeps that popup's own width, centering, and
+  // drag range tied to the actual window size without touching the
+  // computer-screen frame, background image, or icon positions that every
+  // other popup (e.g. Lidar) still relies on via the original hardcoded
+  // bounds below.
+  const [popupWidth, setPopupWidth] = useState(() => Math.min(1000, window.innerWidth * 0.85));
+  const [popupPos, setPopupPos] = useState({ x: 0, y: 0 });
+  const [popupBounds, setPopupBounds] = useState({ left: 0, top: 0, right: 0, bottom: 360 });
+
+  const handlePopupDrag = (event, data) => {
+    setPopupPos({ x: data.x, y: data.y });
+  };
+
   function useWindowSize() {
       const [windowSize, setWindowSize] = useState({
           width: window.innerWidth,
@@ -39,6 +55,37 @@ function App({ openDict, enableUI, popup, animate } ) {
 
       return windowSize;
   }
+
+  useLayoutEffect(() => {
+    if (!responsivePopup || !screenRef.current) {
+      return;
+    }
+
+    const screenOffsetX = screenRef.current.getBoundingClientRect().x;
+    const winWidth = window.innerWidth;
+    const nextPopupWidth = Math.min(1000, winWidth * 0.85);
+    const centeredX = (winWidth - nextPopupWidth) / 2 - screenOffsetX;
+    const maxOffset = Math.max(0, (winWidth - nextPopupWidth) / 2);
+    const nextBounds = {
+      left: centeredX - maxOffset,
+      right: centeredX + maxOffset,
+      top: 0,
+      bottom: 360
+    };
+
+    setPopupWidth(nextPopupWidth);
+    setPopupBounds(nextBounds);
+
+    if (!popupInitialized.current) {
+      popupInitialized.current = true;
+      setPopupPos({ x: centeredX, y: 0 });
+    } else {
+      setPopupPos((prev) => ({
+        x: Math.min(Math.max(prev.x, nextBounds.left), nextBounds.right),
+        y: Math.min(Math.max(prev.y, nextBounds.top), nextBounds.bottom)
+      }));
+    }
+  }, [responsivePopup, width]);
 
   useEffect(() => {
     const handleEsc = (event) => {
@@ -86,12 +133,13 @@ function App({ openDict, enableUI, popup, animate } ) {
       >
 
         <div className="computer screen"
-            style={{ 
+            ref={screenRef}
+            style={{
                 position: 'relative'
             }}
-        > 
+        >
           <img 
-            src={process.env.PUBLIC_URL + `/computer${compFrame}.png`}
+            src={process.env.PUBLIC_URL + `/assets/computer${compFrame}.png`}
             alt="computer" 
             className="w-full h-full object-cover rounded-xl shadow-lg" 
             style={{
@@ -99,7 +147,7 @@ function App({ openDict, enableUI, popup, animate } ) {
               position: 'absolute',
               width: 1520 * scale,
               left: width/2 - 760 * scale
-            }}scal
+            }}
           />
 
           {(compFrame == 11) && enableUI && (<div className="absolute top-[20%] left-[20%] w-[60%] h-[60%] bg-transparent z-10">
@@ -125,7 +173,7 @@ function App({ openDict, enableUI, popup, animate } ) {
                     }}
                 >
                   <img 
-                    src={process.env.PUBLIC_URL + "/taxi.png"} 
+                    src={process.env.PUBLIC_URL + "/assets/taxi.png"} 
                     alt="_'s for the streets" 
                     className="taxi-btn"
                     style={{
@@ -135,7 +183,7 @@ function App({ openDict, enableUI, popup, animate } ) {
                 </button>
 
                 {dgHover && (<img 
-                  src={process.env.PUBLIC_URL + "/doppelgangers.png"} 
+                  src={process.env.PUBLIC_URL + "/assets/doppelgangers.png"} 
                   alt="_'s for the streets" 
                   className="w-16 h-16 hover:scale-110 transition-transform"
                   style={{
@@ -172,7 +220,7 @@ function App({ openDict, enableUI, popup, animate } ) {
                         }}
                 >
                   <img 
-                    src={process.env.PUBLIC_URL + "/racecar.png"} 
+                    src={process.env.PUBLIC_URL + "/assets/racecar.png"} 
                     alt="vroom vroom" 
                     className="racecar-btn"
                     style={{
@@ -182,7 +230,7 @@ function App({ openDict, enableUI, popup, animate } ) {
                 </button>
 
                 {lidarHover && (<img 
-                  src={process.env.PUBLIC_URL + "/lidar.png"} 
+                  src={process.env.PUBLIC_URL + "/assets/lidar.png"} 
                   alt="_'s for the streets" 
                   className="w-16 h-16 hover:scale-110 transition-transform"
                   style={{
@@ -219,7 +267,7 @@ function App({ openDict, enableUI, popup, animate } ) {
                         }}
                 >
                   <img 
-                    src={process.env.PUBLIC_URL + "/racecar.png"} 
+                    src={process.env.PUBLIC_URL + "/assets/racecar.png"} 
                     alt="paint" 
                     className="paint-btn"
                     style={{
@@ -229,7 +277,7 @@ function App({ openDict, enableUI, popup, animate } ) {
                 </button>
 
                 {paintHover && (<img 
-                  src={process.env.PUBLIC_URL + "/lidar.png"} 
+                  src={process.env.PUBLIC_URL + "/assets/lidar.png"} 
                   alt="_'s for the streets" 
                   className="w-16 h-16 hover:scale-110 transition-transform"
                   style={{
@@ -243,7 +291,6 @@ function App({ openDict, enableUI, popup, animate } ) {
                 />)}
               </div>
             </Draggable>
-
             
           </div>)}
 
@@ -256,22 +303,13 @@ function App({ openDict, enableUI, popup, animate } ) {
                 If users were in a project popup (not App), then exiting returns to home page (App)
                 If users exit out of "About Me" popup, they can access app links to projects, or reopen "About Me"
                 by clicking profile icon (not implemented yet).*/}
-          {popup != undefined && (<Draggable
-            nodeRef={nodeRef}
-            bounds={{ left: 0, top: 0, right: 620, bottom: 360 }}
-            handle=".drag-handle" 
-          >
-            <div className="popup browser" 
+          {popup != undefined && (<div className="popup browser"
               ref={nodeRef}
+              style={responsivePopup ? { width: popupWidth, maxWidth: '100%', boxSizing: 'border-box' } : undefined}
             >
-              {/* popup handle to drag */}
-              <div className="drag-handle cursor-move"
-                  style={{padding: 10, background: "#4C4444"}}></div>
-
               {/* popup content (not draggable) */}
               <div className="popup content">{popup}</div>
-            </div>
-          </Draggable>)}
+            </div>)}
 
         </div>
 
@@ -283,7 +321,7 @@ function App({ openDict, enableUI, popup, animate } ) {
             }}
         >
           {dragEnabled && (<img 
-              src={process.env.PUBLIC_URL + "/narwhal.png"} 
+              src={process.env.PUBLIC_URL + "/assets/narwhal.png"} 
               alt="narwhal" 
               className="narwhal"
               style={{
@@ -293,7 +331,7 @@ function App({ openDict, enableUI, popup, animate } ) {
           }
 
           {!dragEnabled && (<img 
-              src={process.env.PUBLIC_URL + "/favicon.ico"} 
+              src={process.env.PUBLIC_URL + "/assets/favicon.ico"} 
               alt="childe" 
               className="childe"
               style={{

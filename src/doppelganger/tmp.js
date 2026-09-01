@@ -1,38 +1,48 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import './GetData.css';
 import Colmap from './Colmap';
-import App from './App';
+import App from '../App';
 
 function GetData({ onDataLoaded }) {
     const [directoryPath, setDirectoryPath] = useState('Alexander_Nevsky_Cathedral,_Sofia');
     const [folderNames, setFolderNames] = useState([]);
     const [error, setError] = useState(null);
     const [loading, setLoading] = useState(false);
+    const [initialLoad, setInitialLoad] = useState(true);
     const [suggestion, setSuggestion] = useState({suggestions: [''], index: 0});
-    const {width, height} = useWindowSize();
+    const containerRef = useRef(null);
+    const [width, setWidth] = useState(0);
     const [heading, setHeading] = useState(0);
 
-    function useWindowSize() {
-        const [windowSize, setWindowSize] = useState({
-            width: window.innerWidth,
-            height: window.innerHeight,
-        });
+    useEffect(() => {
+        setInitialLoad(false);
+    }, []);
 
-        useEffect(() => {
-            const handleResize = () => {
-                setWindowSize({
-                    width: window.innerWidth,
-                    height: window.innerHeight,
-                });
-            };
+    // Track the popup's own rendered width (not window.innerWidth) since the
+    // popup is nested inside a scaled "computer screen" frame that doesn't
+    // track the window size 1:1 — using window width here caused the search
+    // bar to drift off-center and overflow on resize.
+    useLayoutEffect(() => {
+        const updateWidth = () => {
+            if (containerRef.current) {
+                setWidth(containerRef.current.clientWidth);
+            }
+        };
 
-            window.addEventListener('resize', handleResize);
+        updateWidth();
 
-            return () => window.removeEventListener('resize', handleResize);
-        }, []);
+        const resizeObserver = new ResizeObserver(updateWidth);
+        if (containerRef.current) {
+            resizeObserver.observe(containerRef.current);
+        }
 
-        return windowSize;
-    }
+        window.addEventListener('resize', updateWidth);
+
+        return () => {
+            resizeObserver.disconnect();
+            window.removeEventListener('resize', updateWidth);
+        };
+    }, []);
 
     const handleKeyPress = (event) => {
         const index = suggestion.index
@@ -51,6 +61,7 @@ function GetData({ onDataLoaded }) {
             setSuggestion({suggestions: suggestions, index: (index + 1) % suggestions.length })
         }
     }
+    
     const handleInputChange = async (event) => {
         setDirectoryPath(event.target.value);
         try {
@@ -110,14 +121,17 @@ function GetData({ onDataLoaded }) {
     };
 
     return (
-        <App enableUI={false} popup={
-            <div style={{   padding: 2, 
-                            background: '#E8E6E5', 
+        <App enableUI={false} responsivePopup popup={
+            <div ref={containerRef} style={{   width: '100%',
+                            maxWidth: '100%',
+                            boxSizing: 'border-box',
+                            padding: 2,
+                            background: '#E8E6E5',
                             fontFamily: 'Pixelify Sans'
                         }}>
                 <h2 className="street-h2">_'s for the streets</h2>
-                
-                <div style={{ position: 'relative', width: width-500, height: 'auto' }}>
+
+                <div style={{ position: 'relative', width: '100%', maxWidth: '100%', height: 'auto' }}>
                     <input
                         type="text"
                         value={directoryPath}
@@ -136,7 +150,7 @@ function GetData({ onDataLoaded }) {
                                 zIndex: 1,
                                 position: 'absolute',
                                 top: 20,
-                                left: (width-500)/2-220}}
+                                left: width/2-220}}
                     />
                     <input
                         type="text"
@@ -144,7 +158,7 @@ function GetData({ onDataLoaded }) {
                         value={suggestion.suggestions[0] !== "" ? directoryPath + suggestion.suggestions[suggestion.index] : ""}
                         style={{position: 'absolute',
                                 top: 20,
-                                left: (width-500)/2-220,
+                                left: width/2-220,
                                 width: '300px',
                                 padding: '8px',
                                 fontFamily: 'Pixelify Sans',
@@ -163,14 +177,14 @@ function GetData({ onDataLoaded }) {
                             disabled={loading} 
                             style={{padding: 0,
                                     cursor: 'pointer',
-                                    marginLeft: (width-500)/2+120,
+                                    marginLeft: width/2+120,
                                     marginBottom: '25px',
                                     background: 'none',
                                     border: 'none',
                                     display: 'flex',
                                     alignItems: 'center' }}>
                         <img 
-                            src={process.env.PUBLIC_URL + "/favicon.ico"} 
+                            src={process.env.PUBLIC_URL + "/assets/favicon.ico"} 
                             style={{ 
                                     width: '80px',
                                     transform: 'rotate(' + heading + 'deg)'
@@ -192,16 +206,17 @@ function GetData({ onDataLoaded }) {
                     </div>
                 )}
 
-                {!loading && !error && folderNames.length === 0 && directoryPath && (
+                {/* {!loading && !error && folderNames.length === 0 && directoryPath && (
                     <p style={{ marginTop: '20px', color: "#948D8D" }}>No folders found in the specified path.</p>
-                )}
-            
+                )} */}
+
                 <Colmap 
-                    onDirectoryChange={{"location": directoryPath, "click": loading}}
+                    onDirectoryChange={{"location": directoryPath, "click": loading || initialLoad }}
                     onHeadingChange={setHeading}
                 />
 
             </div>}
+            animate={false}
         />
 
     );

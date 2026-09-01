@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState, useCallback } from 'react';
+import React, { useEffect, useLayoutEffect, useRef, useState, useCallback } from 'react';
 import * as THREE from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import Stack from '@mui/material/Stack'
@@ -6,7 +6,7 @@ import Slider from '@mui/material/Slider'
 import StopIcon from '@mui/icons-material/Stop';
 import SquareIcon from '@mui/icons-material/Square';
 import { io } from "socket.io-client";
-import './Colmap.css'
+import './doppelganger/Colmap.css'
 import App from "./App";
 
 const socket = io('http://localhost:5000');
@@ -14,6 +14,9 @@ const socket = io('http://localhost:5000');
 
 function Lidar() {
     const mountRef = useRef(null);
+    const contentRef = useRef(null);
+    const sliderRowRef = useRef(null);
+    const [dragHandleHeight, setDragHandleHeight] = useState(0);
     const rendererRef = useRef(null);
     const sceneRef = useRef(null);
     const cameraRef = useRef(null);
@@ -32,15 +35,43 @@ function Lidar() {
     grid.rotation.z = -Math.PI / 2;
 
     const [pxSize, setPXSize] = useState(0.05);
-    const [width, setWidth] = useState(window.innerWidth-500);
-    const height = window.innerHeight - 275;
+    const [width, setWidth] = useState(1000);
+    const height = 520;
 
-    window.addEventListener('resize', () => {
-        setWidth(window.innerWidth-500);
-        if (rendererRef.current) {
-            rendererRef.current.setSize(window.innerWidth, height)
+    // window.addEventListener('resize', () => {
+    //     setWidth(1000);
+    //     if (rendererRef.current) {
+    //         rendererRef.current.setSize(1000, height)
+    //     }
+    // })
+
+    // Everything above the pxls slider row is draggable — measure the
+    // slider row's actual distance from the top of the popup (rather than
+    // hardcoding a height) so the drag zone always reaches exactly down to
+    // the slider, no matter how the header above it is laid out.
+    useLayoutEffect(() => {
+        const updateDragHandleHeight = () => {
+            if (!contentRef.current || !sliderRowRef.current) {
+                return;
+            }
+            const contentTop = contentRef.current.getBoundingClientRect().top;
+            const sliderTop = sliderRowRef.current.getBoundingClientRect().top;
+            setDragHandleHeight(Math.max(0, sliderTop - contentTop));
+        };
+
+        updateDragHandleHeight();
+
+        const resizeObserver = new ResizeObserver(updateDragHandleHeight);
+        if (contentRef.current) {
+            resizeObserver.observe(contentRef.current);
         }
-    })
+        window.addEventListener('resize', updateDragHandleHeight);
+
+        return () => {
+            resizeObserver.disconnect();
+            window.removeEventListener('resize', updateDragHandleHeight);
+        };
+    }, []);
 
     const renderScene = (firstFrame = false) => {
         if (rendererRef.current) {
@@ -71,7 +102,7 @@ function Lidar() {
         sceneRef.current = scene;
 
         const renderer = new THREE.WebGLRenderer({ antialias: true });
-        renderer.setSize(window.innerWidth, height);
+        renderer.setSize(width, height);
 
         if (firstFrame) {
             const camera = new THREE.PerspectiveCamera(120, width / height, 0.1, 1000);
@@ -162,22 +193,72 @@ function Lidar() {
     
     return (
         <App enableUI={false} popup={
-            <div style={{padding: 2, 
-                background: '#E8E6E5', 
+            <div ref={contentRef} style={{
+                width: 1000,
+                padding: 2,
                 fontFamily: 'Pixelify Sans',
+                position: 'relative',
+                display: 'inline-block'
             }}>
-                <h2 className="street-h2">vroom vroom</h2>
-                <Stack sx={{ 
+                <img
+                    className="lidar_window"
+                    src={process.env.PUBLIC_URL + "/assets/window_ext.png"}
+                    style={{
+                        zIndex: 0,
+                        position: 'absolute',
+                        width: '100%',
+                        display: 'block',
+                        left: 0,
+                    }}
+                />
+                <h2 className="street-h2"
+                    style={{
+                        position: 'relative',
+                        zIndex: 1,
+                        transform: 'translate(-25%, 50%)',
+                        alignItems: 'center',
+                    }}>vroom vroom</h2>
+
+                {/* Everything above the pxls slider row is draggable —
+                    react-draggable (see App.js) treats any descendant
+                    matching ".drag-handle" as a drag-initiation zone. Sized
+                    to dragHandleHeight (measured against sliderRowRef above)
+                    rather than a fixed value, and kept a flat sibling of the
+                    h2/image (not nested inside a positioned wrapper) so its
+                    z-index reliably wins over the h2's instead of getting
+                    trapped in a separate stacking context. */}
+                <div
+                    className="drag-handle"
+                    style={{
+                        position: 'absolute',
+                        top: 0,
+                        left: 0,
+                        width: '100%',
+                        height: dragHandleHeight,
+                        zIndex: 2,
+                        cursor: 'move'
+                    }}
+                />
+
+                <Stack sx={{
                         alignItems: 'center',
                         mb: 1,
+                        position: 'relative',
+                        zIndex: 1,
+                        width: 854.5,
+                        transform: 'translate(8.5%)'
                     }}
                 >
-                    <Stack 
+                    <Stack
+                        ref={sliderRowRef}
                         spacing={2}
                         direction="row"
-                        sx={{ 
+                        sx={{
                             alignItems: 'center',
-                            mb: 1
+                            mb: 1,
+                            position: 'relative',
+                            zIndex: 1,
+                            top: 31,
                         }}
                     >
                         <span style={{ color: "#4C4444" }}>pxls:</span>
@@ -236,9 +317,10 @@ function Lidar() {
                         ref={mountRef}
                         style={{
                             width: '100%',
-                            marginTop: '20px',
+                            marginTop: '35px',
                             position: 'relative',
-                            overflow: 'hidden'
+                            overflow: 'hidden',
+                            zIndex: 1
                         }}>
                     </div>
 
