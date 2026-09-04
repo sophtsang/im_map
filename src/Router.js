@@ -1,7 +1,7 @@
 import { Routes, Route, useNavigate } from "react-router-dom";
 import Lidar from "./Lidar";
-import GetData from "./GetData";
-import Paint from "./Paint";
+import GetData from "./doppelganger/GetData";
+import Paint from "./painter/Paint";
 import App from "./App";
 
 function Router() {
@@ -32,7 +32,8 @@ function Router() {
           } enableUI={true} animate={true}/>} />
         <Route path="/lidar" element={<Lidar />} />
         <Route path="/paint" element={<Paint />} />
-        <Route path="/streets" element={<GetData onDataLoaded={handleMarker}/>} />
+        <Route path="/streets" element={
+          <GetData onDataLoaded={handleMarker}/>} />
     </Routes>
   );
 }

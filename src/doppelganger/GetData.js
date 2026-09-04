@@ -129,7 +129,7 @@ function GetData({ onDataLoaded }) {
             <Draggable
                 cancel={".draggable-btn"}
                 nodeRef={containerRef}
-                bounds={{ left: 0, top: 0, right: width + 140, bottom: height - 530}}
+                bounds={{ left: 0, top: 0, right: width + 140, bottom: height - 500}}
             >       
                           
             <div ref={containerRef} style={{   

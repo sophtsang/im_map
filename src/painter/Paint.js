@@ -11,10 +11,20 @@ import { Canvas, useFrame, extend } from "@react-three/fiber";
 import { useControls, folder } from "leva";
 import { Suspense, useRef, useCallback } from "react";
 import { v4 as uuidv4 } from "uuid";
-import { Village, Tokyo } from "./Models";
+import { Village, Tokyo, Computer } from "./Models";
 import { TensorPass, KuwaharaPass, FinalPass } from "./PostProcessing";
 
 extend({ TensorPass, KuwaharaPass, FinalPass });
+
+function getModel(model) {
+  if (model === "computer") {
+    return <Computer />
+  } else if (model === "village") {
+    return <Village />
+  } else if (model === "tokyo") {
+    return <Tokyo />
+  }
+}
 
 const Painting = () => {
   const materialRef = useRef();
@@ -26,12 +36,12 @@ const Painting = () => {
     passes: folder({
       tensorPass: { value: true },
       kuwaharaPass: { value: true },
-      finalPass: { value: true },
+      finalPass: { value: false },
     }),
-    radius: { value: 6, min: 1, max: 10, step: 1 },
+    radius: { value: 9, min: 1, max: 15, step: 1 },
     model: {
-        value: "tokyo",
-        options: ["ham village", "tokyo"],
+        value: "computer",
+        options: ["computer", "tokyo"],
     }
   });
 
@@ -81,14 +91,11 @@ const Painting = () => {
 
   return (
     <>
-      {/* <mesh receiveShadow castShadow>
-        <torusKnotGeometry args={[0.5, 0.2, 256, 256]} />
-        <Outlines thickness={0.0} transparent />
-        <Edges />
-      </mesh> */}
-
-      <group scale={0.70}>
-        {model === "tokyo" ? <Tokyo /> : <Village />}
+      <group 
+        scale={1.0}
+        rotation={[0, -95*Math.PI/180, 7*Math.PI/180]}
+      >
+        {getModel(model)}
       </group>
 
       <Effects>
@@ -160,17 +167,17 @@ const Paint = () => {
     >
       <Canvas dpr={[1, 2]} style={{ position: "absolute", inset: 0 }}>
         <Suspense fallback="Loading">
-          <ambientLight intensity={1.25} />
-          <directionalLight position={[-5, 5, 5]} intensity={7} />
-          <color attach="background" args={["#3386E0"]} />
+          <ambientLight intensity={1.0} />
+          <directionalLight position={[-5, 5, 5]} intensity={4} />
+          <color attach="background" args={["#55737a"]} />
           <Painting />
           <OrbitControls />
           <OrthographicCamera
             makeDefault
-            position={[5, 0, 10]}
-            zoom={200}
+            position={[0, 0, 10]}
+            zoom={600}
             near={0.01}
-            far={500}
+            far={1000}
           />
         </Suspense>
       </Canvas>
