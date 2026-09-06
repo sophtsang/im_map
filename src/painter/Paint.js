@@ -10,11 +10,10 @@ import {
 import { Canvas, useFrame, extend } from "@react-three/fiber";
 import { useControls, folder } from "leva";
 import { Suspense, useRef, useCallback } from "react";
-import { v4 as uuidv4 } from "uuid";
 import { Village, Tokyo, Computer } from "./Models";
-import { TensorPass, KuwaharaPass, FinalPass } from "./PostProcessing";
+import { MiniKuwaharaPass, TensorPass, KuwaharaPass, FinalPass } from "./PostProcessing";
 
-extend({ TensorPass, KuwaharaPass, FinalPass });
+extend({ MiniKuwaharaPass, TensorPass, KuwaharaPass, FinalPass });
 
 function getModel(model) {
   if (model === "computer") {
@@ -28,14 +27,16 @@ function getModel(model) {
 
 const Painting = () => {
   const materialRef = useRef();
+  const miniKuwaharaPassRef = useRef();
   const tensorPassRef = useRef();
   const kuwaharaPassRef = useRef();
   const finalPassRef = useRef();
 
-  const { tensorPass, kuwaharaPass, finalPass, radius, model } = useControls({
+  const { miniKuwaharaPass, tensorPass, kuwaharaPass, finalPass, radius, model } = useControls({
     passes: folder({
-      tensorPass: { value: true },
-      kuwaharaPass: { value: true },
+      miniKuwaharaPass: { value: true },
+      tensorPass: { value: false },
+      kuwaharaPass: { value: false },
       finalPass: { value: false },
     }),
     radius: { value: 9, min: 1, max: 15, step: 1 },
@@ -73,6 +74,7 @@ const Painting = () => {
 
     // Render once to the FBO with all passes disabled (the "clean" pass
     // KuwaharaPass reads back as its originalSceneTarget)...
+    miniKuwaharaPassRef.current.enabled = false;
     tensorPassRef.current.enabled = false;
     kuwaharaPassRef.current.enabled = false;
     finalPassRef.current.enabled = false;
@@ -80,6 +82,7 @@ const Painting = () => {
     gl.render(scene, camera);
 
     // // ...then render again to the screen with the actual pass toggles applied.
+    miniKuwaharaPassRef.current.enabled = miniKuwaharaPass;
     tensorPassRef.current.enabled = tensorPass;
     kuwaharaPassRef.current.enabled = kuwaharaPass;
     finalPassRef.current.enabled = finalPass;
@@ -99,6 +102,15 @@ const Painting = () => {
       </group>
 
       <Effects>
+        <miniKuwaharaPass 
+          ref={miniKuwaharaPassRef}
+          args={[
+            {
+              radius,
+              originalSceneTarget: originalSceneTarget,
+            },
+          ]}
+        />
         <tensorPass ref={tensorPassRef} />
         <kuwaharaPass
           ref={kuwaharaPassRef}
@@ -184,11 +196,11 @@ const Paint = () => {
 
       {/* Click-through overlay: paints on top, but pointer events fall through
           to the Canvas above (and OrbitControls attached to it) */}
-      <div
+      {/* <div
         style={{ position: "absolute", inset: 0, zIndex: 10, pointerEvents: "none" }}
       >
         <RevealOverlay ref={overlayRef} />
-      </div>
+      </div> */}
     </div>
   );
 };

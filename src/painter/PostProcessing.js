@@ -3,6 +3,72 @@ import * as THREE from "three";
 import tensorFragmentShader from "../shaders/tensorFragmentShader.js";
 import kuwaharaFragmentShader from "../shaders/kuwaharaFragmentShader.js";
 import finalFragmentShader from "../shaders/finalFragmentShader.js";
+import miniKuwaharaFragmentShader from "../shaders/miniKuwaharaFragmentShader.js";
+
+const miniKuwaharaShader = {
+  uniforms: {
+    inputBuffer: { value: null },
+    resolution: {
+      value: new THREE.Vector4(),
+    },
+    originalTexture: { value: null },
+    radius: { value: 15.0 },
+  },
+  vertexShader: `
+  varying vec2 vUv;
+
+  void main() {
+    vUv = uv;
+
+    // FullScreenQuad's geometry is already in clip space, so skip the
+    // model/view/projection transform used for scene geometry.
+    gl_Position = vec4(position.xy, 1.0, 1.0);
+  }
+  `,
+  fragmentShader: miniKuwaharaFragmentShader,
+};
+
+class MiniKuwaharaPass extends Pass {
+  constructor(args) {
+    super();
+
+    this.material = new THREE.ShaderMaterial(miniKuwaharaShader);
+    this.fsQuad = new FullScreenQuad(this.material);
+    this.resolution = new THREE.Vector4(
+      window.innerWidth * Math.min(window.devicePixelRatio, 2),
+      window.innerHeight * Math.min(window.devicePixelRatio, 2),
+      1 / (window.innerWidth * Math.min(window.devicePixelRatio, 2)),
+      1 / (window.innerHeight * Math.min(window.devicePixelRatio, 2))
+    );
+    this.radius = args.radius;
+    this.originalSceneTarget = args.originalSceneTarget;
+  }
+
+  dispose() {
+    this.material.dispose();
+    this.fsQuad.dispose();
+  }
+
+  // assuming that readBuffer is the image
+  render(renderer, writeBuffer, readBuffer) {
+    this.material.uniforms.resolution.value = new THREE.Vector4(
+      window.innerWidth * Math.min(window.devicePixelRatio, 2),
+      window.innerHeight * Math.min(window.devicePixelRatio, 2),
+      1 / (window.innerWidth * Math.min(window.devicePixelRatio, 2)),
+      1 / (window.innerHeight * Math.min(window.devicePixelRatio, 2))
+    );
+    this.material.uniforms.inputBuffer.value = readBuffer.texture;
+    this.material.uniforms.originalTexture.value = this.originalSceneTarget.texture;
+
+    if (this.renderToScreen) {
+      renderer.setRenderTarget(null);
+    } else {
+      renderer.setRenderTarget(writeBuffer);
+      if (this.clear) renderer.clear();
+    }
+    this.fsQuad.render(renderer);
+  }
+}
 
 const tensorShader = {
   uniforms: {
@@ -44,6 +110,7 @@ class TensorPass extends Pass {
     this.fsQuad.dispose();
   }
 
+  // assuming that readBuffer is the image
   render(renderer, writeBuffer, readBuffer) {
     this.material.uniforms.inputBuffer.value = readBuffer.texture;
     this.material.uniforms.resolution.value = new THREE.Vector4(
@@ -193,5 +260,5 @@ class FinalPass extends Pass {
   }
 }
 
-export { TensorPass, KuwaharaPass, FinalPass };
+export { MiniKuwaharaPass, TensorPass, KuwaharaPass, FinalPass };
 

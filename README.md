@@ -1,5 +1,18 @@
 # [i'm map?](https://sophtsang.github.io/im_map/)
 
+# über glsl shaders
+On shaders extending ```Pass```: 
+1) we use ```Effects```: implement each custom shader as a child of ```Pass```, multiple passes can be applied akin to linear combination of convoution filters
+2) to extend ```Pass```, each shader class implements a _fragmentShader.glsl that is used to define ```this.material = new THREE.ShaderMaterial(_fragmentShader.glsl)```
+
+On implementing ```_fragmentShader.glsl```:
+1) ```inputBuffer``` is the texture result of the previous pass
+2) ```originalTexture``` is the original texture if no passes were applied
+3) a shader is akin to a filter that will be applied to each pixel of a texture, for .glsl, ```gl_FragCoord.xy``` is the ```(x, y)``` coordinate of the pixel currently being processed by GLSL
+4) ```FullScreenQuad``` creates a rectangle covering the entire render target, then the GPU rasterizes the quad into fragments, and the fragment shader is run once for each fragment / pixel
+
+# old
+
 Visualizer for the Google Maps Street View panorama dataset curated for [MegaScenes](https://megascenes.github.io/) text annotation evaluation. 
 
 # _'s for the streets
