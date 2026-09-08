@@ -96,7 +96,7 @@ function App({ openDict, enableUI, popup, animate, responsivePopup } ) {
   useEffect(() => {
     const handleEsc = (event) => {
       if (event.key === "Escape") {
-        navigate("/");
+        navigate("/im_map");
       }
     };
 

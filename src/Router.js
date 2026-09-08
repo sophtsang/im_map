@@ -16,7 +16,7 @@ function Router() {
   };
 
   const openPaint = () => {
-    navigate("/");
+    navigate("/im_map");
   }
 
   const handleMarker = (data) => {
@@ -27,11 +27,11 @@ function Router() {
 
   return (
     <Routes>
-        <Route path="/im_map" element={<App openDict={
+        <Route path="/im_map_flat" element={<App openDict={
             {"openVroom": openVroom, "openStreets": openStreets, "openPaint": openPaint}
           } enableUI={true} animate={true}/>} />
         <Route path="/lidar" element={<Lidar />} />
-        <Route path="/" element={<Paint />} />
+        <Route path="/im_map" element={<Paint />} />
         <Route path="/streets" element={
           <GetData onDataLoaded={handleMarker}/>} />
     </Routes>

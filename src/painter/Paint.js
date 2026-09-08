@@ -81,7 +81,7 @@ const Painting = ({ cssContainerRef }) => {
 
   useEffect(() => {
     if (!cssControllerRef.current) {
-      cssControllerRef.current = new CSS3DScreenController({ src: "/im_map" });
+      cssControllerRef.current = new CSS3DScreenController({ src: "/im_map_flat" });
     }
     const controller = cssControllerRef.current;
     const container = cssContainerRef.current;
