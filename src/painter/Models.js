@@ -1,5 +1,6 @@
 import { useGLTF } from "@react-three/drei";
 import { useEffect } from "react";
+import { computeScreenAnchor, findScreenGlassMesh } from "./CSS3DScreen";
 
 const VILLAGE_MODEL_URL = `${process.env.PUBLIC_URL}/models/ham/scene.gltf`;
 const TOKYO_MODEL_URL = `${process.env.PUBLIC_URL}/models/tokyo/scene.gltf`;
@@ -35,7 +36,7 @@ export function Tokyo(props) {
   return <primitive object={scene} {...props} />;
 }
 
-export function Computer(props) {
+export function Computer({ onScreenAnchor, hideScreen, ...props }) {
   const { scene } = useGLTF(COMPUTER_MODEL_URL);
 
   useEffect(() => {
@@ -50,7 +51,21 @@ export function Computer(props) {
         child.receiveShadow = true;
       }
     });
-  }, [scene]);
+
+    if (onScreenAnchor) {
+      const glassMesh = findScreenGlassMesh(scene);
+      if (glassMesh) {
+        onScreenAnchor(computeScreenAnchor(glassMesh));
+      }
+    }
+  }, [scene, onScreenAnchor]);
+
+  useEffect(() => {
+    const glassMesh = findScreenGlassMesh(scene);
+    if (glassMesh) {
+      glassMesh.visible = !hideScreen;
+    }
+  }, [scene, hideScreen]);
 
   return <primitive object={scene} {...props} />;
 }

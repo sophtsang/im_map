@@ -16,8 +16,8 @@ function App({ openDict, enableUI, popup, animate, responsivePopup } ) {
 
   const holdTimer = useRef(null);
   const {width, height} = useWindowSize();
-  const [scale, setScale] = useState(Math.min(10, Math.floor(10 * (window.innerWidth / 1520)))/10);
-  const [dragEnabled, setDragEnabled] = useState(false);
+  const [scale, setScale] = useState(window.innerWidth / 1520);
+  const [dragEnabled, setDragEnabled] = useState(true);
 
   // Only used when `responsivePopup` is set (currently just the streets/
   // Colmap+GetData widget) — keeps that popup's own width, centering, and
@@ -41,7 +41,7 @@ function App({ openDict, enableUI, popup, animate, responsivePopup } ) {
 
       useEffect(() => {
           const handleResize = () => {
-              setScale(Math.min(10, Math.floor(10 * (window.innerWidth / 1520)))/10)
+              setScale(window.innerWidth / 1520)
               setWindowSize({
                   width: window.innerWidth,
                   height: window.innerHeight,
@@ -139,22 +139,23 @@ function App({ openDict, enableUI, popup, animate, responsivePopup } ) {
             }}
         >
           <img 
-            src={process.env.PUBLIC_URL + `/assets/computer${compFrame}.png`}
+            // src={process.env.PUBLIC_URL + `/assets/computer${compFrame}.png`}
+            src={process.env.PUBLIC_URL + `/assets/computer_screen.png`}
             alt="computer" 
             className="w-full h-full object-cover rounded-xl shadow-lg" 
             style={{
               zIndex: 0,
               position: 'absolute',
-              width: 1520 * scale,
+              width: width,
               left: width/2 - 760 * scale
             }}
           />
 
-          {(compFrame == 11) && enableUI && (<div className="absolute top-[20%] left-[20%] w-[60%] h-[60%] bg-transparent z-10">
+          {(compFrame == 11) && enableUI && (<div className="absolute top-[0%] left-[0%] w-[100%] h-[100%] bg-transparent z-10">
             <Draggable
               cancel={dragEnabled ? "" : ".draggable-btn"}
               nodeRef={nodeRef}
-              bounds={{ left: 0, top: 0, right: 620 * scale, bottom: 360 * scale }}>       
+              bounds={{ left: 0, top: 0, right: width, bottom: height }}>       
               <div className="draggable"
                   ref={nodeRef}
               >
@@ -168,8 +169,8 @@ function App({ openDict, enableUI, popup, animate, responsivePopup } ) {
                       border: 'none',
                       zIndex: 1,
                       position: 'absolute',
-                      top: 149.5 * scale,
-                      left: width/2 - 415.7 * scale
+                      top: 4 * (width / 84),
+                      left: 3 * (width / 84)
                     }}
                 >
                   <img 
@@ -177,7 +178,7 @@ function App({ openDict, enableUI, popup, animate, responsivePopup } ) {
                     alt="_'s for the streets" 
                     className="taxi-btn"
                     style={{
-                      width: 159.5 * scale
+                      width: width * 16 / 84
                     }}
                   />
                 </button>
@@ -185,12 +186,12 @@ function App({ openDict, enableUI, popup, animate, responsivePopup } ) {
                 {dgHover && (<img 
                   src={process.env.PUBLIC_URL + "/assets/doppelgangers.png"} 
                   alt="_'s for the streets" 
-                  className="w-16 h-16 hover:scale-110 transition-transform"
+                  className="w-16 h-16 transition-transform"
                   style={{
                     position: 'absolute',
-                    top: 60.1 * scale,
-                    left: width/2- 628.7 * scale,
-                    height: 109.5 * scale,
+                    top: -5 * (width / 84),
+                    left: -18 * (width / 84),
+                    width: width * 59 / 84,
                     pointerEvents: 'none',
                     zIndex: 1
                   }}
@@ -262,8 +263,8 @@ function App({ openDict, enableUI, popup, animate, responsivePopup } ) {
                           border: 'none',
                           zIndex: 3,
                           position: 'absolute',
-                          top: 149.5 * scale,
-                          left: width/2 - 236 * scale
+                          top: 4 * (width / 84),
+                          left: 21 * (width / 84)
                         }}
                 >
                   <img 
@@ -271,7 +272,7 @@ function App({ openDict, enableUI, popup, animate, responsivePopup } ) {
                     alt="paint" 
                     className="paint-btn"
                     style={{
-                      width: 159.5 * scale
+                      width: width * 16 / 84
                     }}
                   />
                 </button>
@@ -279,19 +280,53 @@ function App({ openDict, enableUI, popup, animate, responsivePopup } ) {
                 {paintHover && (<img 
                   src={process.env.PUBLIC_URL + "/assets/lidar.png"} 
                   alt="_'s for the streets" 
-                  className="w-16 h-16 hover:scale-110 transition-transform"
+                  className="w-16 h-16 transition-transform"
                   style={{
                     position: 'absolute',
-                    top: 60.1 * scale,
-                    left: width/2- 359 * scale,
-                    height: 109.5 * scale,
+                    top: -5 * (width / 84),
+                    left: 9 * (width / 84),
+                    width: width * 41 / 84,
                     pointerEvents: 'none',
                     zIndex: 1
                   }}
                 />)}
               </div>
             </Draggable>
-            
+
+            {/* <button className="control-btn"
+                onClick={handleCtrl} 
+                style={{
+                  background: 'none',
+                  border: 'none'
+                }}
+            >
+              {dragEnabled && (<img 
+                  src={process.env.PUBLIC_URL + "/assets/narwhal.png"} 
+                  alt="narwhal" 
+                  className="narwhal"
+                  style={{
+                    position: 'absolute',
+                    top: 148 * scale,
+                    left: width/2 + 213 * scale,
+                    width: 121 * scale
+                  }}
+                />)
+              }
+
+              {!dragEnabled && (<img 
+                  src={process.env.PUBLIC_URL + "/assets/favicon.ico"} 
+                  alt="childe" 
+                  className="childe"
+                  style={{
+                    position: 'absolute',
+                    top: 148 * scale,
+                    left: width/2 + 213 * scale,
+                    width: 121 * scale
+                  }}
+                />)
+              }
+            </button> */}
+                
           </div>)}
 
           {/* Projects in the portfolio will be displayed like popup browsers that are draggable.
@@ -312,34 +347,6 @@ function App({ openDict, enableUI, popup, animate, responsivePopup } ) {
             </div>)}
 
         </div>
-
-        <button className="control-btn"
-            onClick={handleCtrl} 
-            style={{
-              background: 'none',
-              border: 'none'
-            }}
-        >
-          {dragEnabled && (<img 
-              src={process.env.PUBLIC_URL + "/assets/narwhal.png"} 
-              alt="narwhal" 
-              className="narwhal"
-              style={{
-                width: 159.5 * scale
-              }}
-            />)
-          }
-
-          {!dragEnabled && (<img 
-              src={process.env.PUBLIC_URL + "/assets/favicon.ico"} 
-              alt="childe" 
-              className="childe"
-              style={{
-                width: 159.5 * scale
-              }}
-            />)
-          }
-        </button>
 
       </Stack>
 

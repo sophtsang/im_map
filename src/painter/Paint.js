@@ -7,44 +7,93 @@ import {
   useTexture,
   Effects,
 } from "@react-three/drei";
-import { Canvas, useFrame, extend } from "@react-three/fiber";
+import { Canvas, useFrame, useThree, extend } from "@react-three/fiber";
 import { useControls, folder } from "leva";
-import { Suspense, useRef, useCallback } from "react";
-import { Village, Tokyo, Computer } from "./Models";
+import { Suspense, useRef, useCallback, useEffect } from "react";
+import { Computer } from "./Models";
 import { MiniKuwaharaPass, TensorPass, KuwaharaPass, FinalPass } from "./PostProcessing";
+import { CSS3DScreenController } from "./CSS3DScreen";
 
 extend({ MiniKuwaharaPass, TensorPass, KuwaharaPass, FinalPass });
 
-function getModel(model) {
+function getModel(model, onScreenAnchor, hideScreen) {
   if (model === "computer") {
-    return <Computer />
-  } else if (model === "village") {
-    return <Village />
-  } else if (model === "tokyo") {
-    return <Tokyo />
-  }
+    return <Computer onScreenAnchor={onScreenAnchor} hideScreen={hideScreen} />
+  } 
+  // else if (model === "village") {
+  //   return <Village />
+  // } else if (model === "tokyo") {
+  //   return <Tokyo />
+  // }
 }
 
-const Painting = () => {
+const Painting = ({ cssContainerRef }) => {
   const materialRef = useRef();
   const miniKuwaharaPassRef = useRef();
   const tensorPassRef = useRef();
   const kuwaharaPassRef = useRef();
   const finalPassRef = useRef();
+  const cssControllerRef = useRef(null);
+  const screenAnchorRef = useRef(null);
+  const { size } = useThree();
 
   const { miniKuwaharaPass, tensorPass, kuwaharaPass, finalPass, radius, model } = useControls({
     passes: folder({
-      miniKuwaharaPass: { value: true },
+      miniKuwaharaPass: { value: false },
       tensorPass: { value: false },
-      kuwaharaPass: { value: false },
+      kuwaharaPass: { value: true },
       finalPass: { value: false },
     }),
     radius: { value: 9, min: 1, max: 15, step: 1 },
     model: {
         value: "computer",
-        options: ["computer", "tokyo"],
+        // options: ["computer", "tokyo"],
     }
   });
+
+  const {
+    cssScreen,
+    cssOffsetX,
+    cssOffsetY,
+    cssOffsetZ,
+    cssRotX,
+    cssRotY,
+    cssRotZ,
+    cssFlipX,
+    cssFlipY,
+  } = useControls({
+    screenOverlay: folder({
+      cssScreen: { value: true, label: "enabled" },
+      cssOffsetX: { value: 0, min: -0.2, max: 0.2, step: 0.001 },
+      cssOffsetY: { value: 0, min: -0.2, max: 0.2, step: 0.001 },
+      cssOffsetZ: { value: 0, min: -0.2, max: 0.2, step: 0.001 },
+      cssRotX: { value: 0, min: -180, max: 180, step: 1 },
+      cssRotY: { value: 0, min: -180, max: 180, step: 1 },
+      cssRotZ: { value: 0, min: -180, max: 180, step: 1 },
+      cssFlipX: { value: false },
+      cssFlipY: { value: false },
+    }),
+  });
+
+  const handleScreenAnchor = useCallback((anchor) => {
+    screenAnchorRef.current = anchor;
+  }, []);
+
+  useEffect(() => {
+    if (!cssControllerRef.current) {
+      cssControllerRef.current = new CSS3DScreenController({ src: "/im_map" });
+    }
+    const controller = cssControllerRef.current;
+    const container = cssContainerRef.current;
+    if (container) controller.mount(container);
+    return () => {
+      if (container) controller.unmount(container);
+    };
+  }, [cssContainerRef]);
+
+  useEffect(() => {
+    cssControllerRef.current?.setSize(size.width, size.height);
+  }, [size]);
 
   const paintNormalTexture = useTexture(
     "https://cdn.maximeheckel.com/textures/paint-normal.jpg"
@@ -90,15 +139,36 @@ const Painting = () => {
     // gl.render(scene, camera);
 
     camera.lookAt(0, 0, 0);
+
+    const cssController = cssControllerRef.current;
+    const screenAnchor = screenAnchorRef.current;
+    if (cssController && model === "computer" && screenAnchor) {
+      cssController.setVisible(cssScreen);
+      if (cssScreen) {
+        cssController.syncToAnchor(screenAnchor, {
+          offset: { x: cssOffsetX, y: cssOffsetY, z: cssOffsetZ },
+          rotationOffset: {
+            x: (cssRotX * Math.PI) / 180,
+            y: (cssRotY * Math.PI) / 180,
+            z: (cssRotZ * Math.PI) / 180,
+          },
+          flipX: cssFlipX,
+          flipY: cssFlipY,
+        });
+        cssController.render(camera);
+      }
+    } else if (cssController) {
+      cssController.setVisible(false);
+    }
   });
 
   return (
     <>
-      <group 
+      <group
         scale={1.0}
         rotation={[0, -95*Math.PI/180, 7*Math.PI/180]}
       >
-        {getModel(model)}
+        {getModel(model, handleScreenAnchor, cssScreen)}
       </group>
 
       <Effects>
@@ -142,6 +212,7 @@ const Paint = () => {
   const downPosRef = useRef(null);
   const downTimeRef = useRef(null);
   const containerRef = useRef(null);
+  const cssContainerRef = useRef(null);
 
   const handlePointerDown = useCallback((event) => {
     downPosRef.current = { x: event.clientX, y: event.clientY };
@@ -177,22 +248,32 @@ const Paint = () => {
       onPointerDown={handlePointerDown}
       onPointerUp={handlePointerUp}
     >
-      <Canvas dpr={[1, 2]} style={{ position: "absolute", inset: 0 }}>
+      <Canvas dpr={[1, 2]} style={{ position: "absolute", inset: 0, zIndex: 0 }}>
         <Suspense fallback="Loading">
           <ambientLight intensity={1.0} />
           <directionalLight position={[-5, 5, 5]} intensity={4} />
           <color attach="background" args={["#55737a"]} />
-          <Painting />
+          <Painting cssContainerRef={cssContainerRef} />
           <OrbitControls />
           <OrthographicCamera
             makeDefault
             position={[0, 0, 10]}
-            zoom={600}
+            zoom={300}
             near={0.01}
             far={1000}
           />
         </Suspense>
       </Canvas>
+
+      {/* Houses the CSS3DRenderer's DOM output (the "Screen" mesh's iframe
+          overlay). It sits above the Canvas so the iframe is visible without
+          punching a transparency hole through the WebGL/postprocessing
+          pipeline; only the iframe itself takes pointer events (set in
+          CSS3DScreenController) so drags elsewhere still reach OrbitControls. */}
+      <div
+        ref={cssContainerRef}
+        style={{ position: "absolute", inset: 0, zIndex: 1, overflow: "hidden", pointerEvents: "none" }}
+      />
 
       {/* Click-through overlay: paints on top, but pointer events fall through
           to the Canvas above (and OrbitControls attached to it) */}

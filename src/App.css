@@ -101,21 +101,29 @@ Stack container equivalent
   transition: transform 0.2s ease-in-out;
 } */
 
-/* Taxi button specific position */
-.taxi-btn:hover {
-  transform: scale(1.1); 
-  background: rgba(255, 255, 255, 0.25); 
-  box-shadow: 0 2px 2px rgba(0,0,0,0.5);
-  transition: transform 0.2s ease-in-out;
+.draggable-btn.drag-active button {
+  pointer-events: none;
 }
 
-/* Racecar button specific position */
-.racecar-btn:hover {
+/* .control-btn:hover {
+  transform: scale(1.1); 
+} */
+
+/* Taxi button specific position */
+/* .taxi-btn:hover {
   transform: scale(1.1); 
   background: rgba(255, 255, 255, 0.25); 
   box-shadow: 0 2px 2px rgba(0,0,0,0.5);
   transition: transform 0.2s ease-in-out;
-}
+} */
+
+/* Racecar button specific position */
+/* .racecar-btn:hover {
+  transform: scale(1.1); 
+  background: rgba(255, 255, 255, 0.25); 
+  box-shadow: 0 2px 2px rgba(0,0,0,0.5);
+  transition: transform 0.2s ease-in-out;
+} */
 
 /* Icon images */
 /* .icon-img {
@@ -150,13 +158,6 @@ Stack container equivalent
   z-index: 2;
 } */
 
-/* Popup browser */
-/* .popup.browser {
-  position: absolute;
-  background: white;
-  border: 1px solid #ccc;
-  border-radius: 8px;
-} */
 
 /* Drag handle */
 /* .drag-handle {
