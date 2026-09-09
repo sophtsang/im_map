@@ -208,11 +208,15 @@ function App({ openDict, enableUI, popup, animate, responsivePopup } ) {
               </div>
             </Draggable>
 
-            {/* <Draggable 
+            <Draggable 
               cancel={dragEnabled ? "" : ".draggable-btn"}
               nodeRef={nodeRef}
-              bounds={{ left: -180.75 * scale, top: 0, right: 440.5 * scale, bottom: 360 * scale }}
-            >       
+              bounds={{ 
+                left: - (raceCarWidth + 2) * (width / screenWidth), 
+                top: 0, 
+                right: width - (raceCarWidth + 26) * (width / screenWidth), 
+                bottom: width - (raceCarWidth + 34) * (width / screenWidth) }}
+            >        
               <div className="draggable-btn"
                   ref={nodeRef}
               >
@@ -223,10 +227,10 @@ function App({ openDict, enableUI, popup, animate, responsivePopup } ) {
                         style={{
                           background: 'none',
                           border: 'none',
-                          zIndex: 2,
+                          zIndex: 3,
                           position: 'absolute',
-                          top: 149.5 * scale,
-                          left: width/2 - 236 * scale
+                          top: 4 * (width / screenWidth),
+                          left: 21 * (width / screenWidth)
                         }}
                 >
                   <img 
@@ -234,7 +238,7 @@ function App({ openDict, enableUI, popup, animate, responsivePopup } ) {
                     alt="vroom vroom" 
                     className="racecar-btn"
                     style={{
-                      width: 159.5 * scale
+                      width: width * raceCarWidth / screenWidth
                     }}
                   />
                 </button>
@@ -242,20 +246,20 @@ function App({ openDict, enableUI, popup, animate, responsivePopup } ) {
                 {lidarHover && (<img 
                   src={process.env.PUBLIC_URL + "/assets/lidar.png"} 
                   alt="_'s for the streets" 
-                  className="w-16 h-16 hover:scale-110 transition-transform"
+                  className="w-16 h-16 transition-transform"
                   style={{
                     position: 'absolute',
-                    top: 60.1 * scale,
-                    left: width/2- 359 * scale,
-                    height: 109.5 * scale,
+                    top: -5 * (width / screenWidth),
+                    left: 9 * (width / screenWidth),
+                    width: width * lidarBannerWidth / screenWidth,
                     pointerEvents: 'none',
                     zIndex: 1
                   }}
                 />)}
               </div>
-            </Draggable> */}
+            </Draggable>
 
-            <Draggable 
+            {/* <Draggable 
               cancel={dragEnabled ? "" : ".draggable-btn"}
               nodeRef={nodeRef}
               bounds={{ 
@@ -304,7 +308,7 @@ function App({ openDict, enableUI, popup, animate, responsivePopup } ) {
                   }}
                 />)}
               </div>
-            </Draggable>
+            </Draggable> */}
 
             <button className="control-btn"
                 onClick={handleCtrl} 
