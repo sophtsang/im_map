@@ -3,6 +3,7 @@ import Lidar from "./Lidar";
 import GetData from "./doppelganger/GetData";
 import Paint from "./painter/Paint";
 import App from "./App";
+import Truck from "./truck/Truck";
 
 function Router() {
   const navigate = useNavigate();
@@ -30,7 +31,8 @@ function Router() {
         <Route path="/im_map" element={<App openDict={
             {"openVroom": openVroom, "openStreets": openStreets, "openPaint": openPaint}
           } enableUI={true} animate={true}/>} />
-        <Route path="/lidar" element={<Lidar />} />
+        <Route path="/lidar" element={<Truck />} />
+        {/* <Route path="/truck" element={<Truck />} /> */}
         <Route path="/paint" element={<Paint />} />
         <Route path="/streets" element={
           <GetData onDataLoaded={handleMarker}/>} />
