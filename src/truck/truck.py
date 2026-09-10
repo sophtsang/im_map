@@ -39,7 +39,7 @@ MAX_LINEAR_VEL = 1.5  # units/s
 
 ANGULAR_ACCEL = 10.0 * np.pi / 180  # rad/s^2 while "a"/"d" is held
 ANGULAR_DAMPING = 3.0  # 1/s, decays phi back to 0 once "a"/"d" is released
-MAX_STEERING_PHI = 15 * np.pi / 180
+MAX_STEERING_PHI = 12 * np.pi / 180
 
 DT = 1 / 30.0
 

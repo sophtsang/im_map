@@ -11,7 +11,7 @@ const MAX_LINEAR_VEL = 100; // px/s
 
 const ANGULAR_ACCEL = 10 * Math.PI / 180; // rad/s^2 while "a"/"d" is held
 const ANGULAR_DAMPING = 3.0; // 1/s, decays phi back to 0 once "a"/"d" is released
-const MAX_STEERING_PHI = 15 * Math.PI / 180; // maximum steering angle s.t. phi <= max_phi < pi / 2
+const MAX_STEERING_PHI = 12 * Math.PI / 180; // maximum steering angle s.t. phi <= max_phi < pi / 2
 
 const CANVAS_WIDTH = 800;
 const CANVAS_HEIGHT = 600;
@@ -117,6 +117,8 @@ function drawAxle(ctx, x, y, theta, track, color) {
 
 function drawScene(ctx, state) {
   const { x_c, y_c, theta_c, theta_t, x_t, y_t, v, phi } = state;
+  const x_axle = x_c + (L / 2) * Math.cos(theta_c);
+  const y_axle = y_c + (L / 2) * Math.sin(theta_c);
 
   ctx.clearRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
 
@@ -145,6 +147,19 @@ function drawScene(ctx, state) {
     ctx.lineTo(CANVAS_WIDTH, gy);
     ctx.stroke();
   }
+  ctx.restore();
+
+  // angle from x-axis to axle: phi + theta_c
+  let radius = L / (2 * Math.tan(phi));
+  ctx.save();
+  ctx.beginPath();
+  ctx.arc(
+    x_axle - Math.sin(phi + theta_c) * radius, 
+    y_axle + Math.cos(phi + theta_c) * radius, 
+    Math.abs(radius), 0, Math.PI * 2); // center, radius, start angle, end angle
+  ctx.strokeStyle = "#ffffff";
+  ctx.lineWidth = 2;
+  ctx.stroke();
   ctx.restore();
 
   // tow-bar: connects the hitch to the tracked rear-axle point (x_t, y_t).
@@ -195,10 +210,8 @@ function drawScene(ctx, state) {
 
   // cabin rear axle (coincides with the hitch, (x_c, y_c), in this model)
   drawAxle(ctx, 
-    x_c + (L / 2) * Math.cos(theta_c), 
-    y_c + (L / 2) * Math.sin(theta_c), 
-    phi + theta_c, L, "#39ff14");
-
+    x_axle, y_axle, phi + theta_c, L, "#39ff14");
+ 
   ctx.restore(); // undo the y-up flip
 }
 
