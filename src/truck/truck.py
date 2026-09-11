@@ -71,11 +71,24 @@ class Truck:
 
         This is control input, not the kinematics, so it's fully wired up
         already — see step() below for what's left to fill in.
+
+        if (keys.w) {
+    v = Math.min(MAX_LINEAR_VEL, v + LINEAR_ACCEL * dt);
+  } else if (keys.s) {
+    v = Math.min(MAX_LINEAR_VEL, v - LINEAR_ACCEL * dt);
+  } else if (Math.abs(v) > 0) {
+    sign = (v > 0) ? 1 : -1;
+    v = sign * Math.max(0, Math.abs(v - LINEAR_DAMPING * MAX_LINEAR_VEL * dt));
+  }
+
         """
         if keys.get("w"):
             self.v = min(MAX_LINEAR_VEL, self.v + LINEAR_ACCEL * dt)
-        elif self.v > 0:
-            self.v = max(0.0, self.v - LINEAR_DAMPING * MAX_LINEAR_VEL * dt)
+        elif keys.get("s"):
+            self.v = max(-MAX_LINEAR_VEL, self.v - LINEAR_ACCEL * dt)
+        elif np.abs(self.v) > 0:
+            sign = 1 if (self.v > 0) else -1
+            self.v = sign * max(0.0, np.abs(self.v) - LINEAR_DAMPING * MAX_LINEAR_VEL * dt)
 
         # phi is the steering angle *relative to theta_c* (angle between the
         # front wheel's perpendicular and the cabin heading) — step() uses
@@ -115,7 +128,7 @@ class Truck:
 
 def main():
     truck = Truck()
-    keys = {"w": False, "a": False, "d": False}
+    keys = {"w": False, "a": False, "d": False, "s": False}
 
     fig, ax = plt.subplots(figsize=(7, 7))
     ax.set_xlim(-10, 10)

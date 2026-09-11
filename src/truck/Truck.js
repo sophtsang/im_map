@@ -1,36 +1,32 @@
 import { useCallback, useEffect, useRef, useState } from "react";
+import { generateTrajectoryPNG } from "./Plot.js";
 
-const L = 40; // L, configurable — cabin is L x L (square)
-const d = 80; // d, configurable — hitch-to-rear-axle coupling distance
-const L2 = 70; // L2, configurable — fixed trailer body length (must be <= d)
-const W = 40; // px, across trailer heading
+const L = 40; // L : square cabin length
+const d = 80; // d : dist from rear axle to hitch
+const L2 = 70; // L2 : trailer length
+const W = 40; // W : same as cabin length 
 
-const LINEAR_ACCEL = 50; // px/s^2 while "w" is held
+const LINEAR_ACCEL = 100; // px/s^2 while "w" is held
 const LINEAR_DAMPING = 2.0; // 1/s, decays v back to 0 once "w" is released
-const MAX_LINEAR_VEL = 100; // px/s
+const MAX_LINEAR_VEL = 200; // px/s
 
-const ANGULAR_ACCEL = 10 * Math.PI / 180; // rad/s^2 while "a"/"d" is held
-const ANGULAR_DAMPING = 3.0; // 1/s, decays phi back to 0 once "a"/"d" is released
-const MAX_STEERING_PHI = 12 * Math.PI / 180; // maximum steering angle s.t. phi <= max_phi < pi / 2
+const ANGULAR_ACCEL = 10 * Math.PI / 180; // acceleration of the steering angle
+// const ANGULAR_DAMPING = 3.0;
+const MAX_STEERING_PHI = 12 * Math.PI / 180; // max steering angle
 
 const CANVAS_WIDTH = 800;
 const CANVAS_HEIGHT = 600;
 
-// Initial state — edit these to start the sim from a different pose.
-// theta_c/theta_t are radians, CCW from +x axis (0 = pointing right).
-const INITIAL_X_C = 200;
-const INITIAL_Y_C = CANVAS_HEIGHT / 2;
-const INITIAL_THETA_C = 0;
-const INITIAL_THETA_T = 0;
+// Initial state = [xc, yc, thetac, thetat].T
+const INITIAL_X_C = 600;
+const INITIAL_Y_C = 400;
+const INITIAL_THETA_C = -80 * Math.PI / 180;
+const INITIAL_THETA_T = -70 * Math.PI / 180;
 
-// Rear axle of the trailer — tracked explicitly (not derived from
-// x_c/y_c/theta_t/d each frame), so set its own initial location here.
+// Rear axle
 const INITIAL_X_T = INITIAL_X_C - d * Math.cos(INITIAL_THETA_T);
 const INITIAL_Y_T = INITIAL_Y_C - d * Math.sin(INITIAL_THETA_T);
 
-// TODO: implement the tractor-trailer kinematic equations. `state` holds
-// the current {x_c, y_c, theta_c, theta_t, v, phi}; return the state
-// advanced by `dt` seconds.
 function stepKinematics(state, dt) {
   const { x_c, y_c, theta_c, theta_t, x_t, y_t, v, phi } = state;
 
@@ -38,9 +34,6 @@ function stepKinematics(state, dt) {
   const dy_c = v * Math.sin(theta_c);
   const dtheta_c = v / (L / 2) * Math.tan(phi);
   const dtheta_t = v / d * Math.sin(theta_c - theta_t);
-
-  // TODO: kinematics for the rear axle (x_t, y_t), e.g. in terms of the
-  // trailer's own axle speed and theta_t.
   const dx_t = dx_c + d * dtheta_t * Math.sin(theta_t);
   const dy_t = dy_c - d * dtheta_t * Math.cos(theta_t);
 
@@ -55,23 +48,20 @@ function stepKinematics(state, dt) {
   };
 }
 
-// Maps currently-held keys to (v, phi) via simple accelerate/damping —
-// this is control input, not the kinematics, so it's fully wired up already.
 function applyControls(state, keys, dt) {
   let { v, phi } = state;
 
   if (keys.w) {
     v = Math.min(MAX_LINEAR_VEL, v + LINEAR_ACCEL * dt);
-  } else if (v > 0) {
-    v = Math.max(0, v - LINEAR_DAMPING * MAX_LINEAR_VEL * dt);
+  } else if (keys.s) {
+    v = Math.max(-MAX_LINEAR_VEL, v - LINEAR_ACCEL * dt);
+  } else if (Math.abs(v) > 0) {
+    let sign = (v > 0) ? 1 : -1;
+    v = sign * Math.max(0, Math.abs(v) - LINEAR_DAMPING * MAX_LINEAR_VEL * dt);
   }
 
-  // phi is the steering angle *relative to theta_c* (angle between the
-  // front wheel's perpendicular and the cabin heading) — stepKinematics
-  // uses tan(phi) directly, so phi itself must stay within a fixed band
-  // around 0. (It must NOT track theta_c: doing so turns this into a
-  // feedback loop, since a bigger phi speeds up theta_c, which would then
-  // keep raising phi's own ceiling.)
+  // phi is the steering angle: the angle between perpendicular bisector of cabin axle 
+  // and heading or orientation of the cabin
   const turningCCW = keys.a && !keys.d;
   const turningCW = keys.d && !keys.a;
   if (turningCCW) {
@@ -88,9 +78,7 @@ function applyControls(state, keys, dt) {
   return { ...state, v, phi };
 }
 
-// Draws a rear-wheel axle as a bar perpendicular to `theta` (the body's
-// heading) centered at (x, y), with a wheel dot at each end — for sanity
-// checking that a body's position/heading/rear-axle state line up visually.
+// draw the cabin and rear axles to visualize how axle orientation changes with phi
 function drawAxle(ctx, x, y, theta, track, color) {
   const halfTrack = track / 2;
   const perp = theta + Math.PI / 2;
@@ -122,10 +110,6 @@ function drawScene(ctx, state) {
 
   ctx.clearRect(0, 0, CANVAS_WIDTH, CANVAS_HEIGHT);
 
-  // Canvas y increases downward by default, which would otherwise make
-  // +theta rotate clockwise on screen. Flip to a standard math frame
-  // (+x right, +y up, +theta CCW) for everything drawn below, so the
-  // kinematics' cos/sin convention matches what's rendered.
   ctx.save();
   ctx.translate(0, CANVAS_HEIGHT);
   ctx.scale(1, -1);
@@ -156,13 +140,13 @@ function drawScene(ctx, state) {
   ctx.arc(
     x_axle - Math.sin(phi + theta_c) * radius, 
     y_axle + Math.cos(phi + theta_c) * radius, 
-    Math.abs(radius), 0, Math.PI * 2); // center, radius, start angle, end angle
+    Math.abs(radius), 0, Math.PI * 2); // this is to draw the circular path that the cabin is tracing when turn
   ctx.strokeStyle = "#ffffff";
   ctx.lineWidth = 2;
   ctx.stroke();
   ctx.restore();
 
-  // tow-bar: connects the hitch to the tracked rear-axle point (x_t, y_t).
+  // the line connecting rear axle midpoint to hitch, parallel to trailer length, in figure 2.38
   ctx.save();
   ctx.strokeStyle = "#8a8a8a";
   ctx.lineWidth = 2;
@@ -172,8 +156,7 @@ function drawScene(ctx, state) {
   ctx.stroke();
   ctx.restore();
 
-  // trailer: fixed length L2 (<= d), rear axle at (x_t, y_t), body extends
-  // forward from the axle along theta_t.
+  // draw the trailer
   ctx.save();
   ctx.translate(x_t, y_t);
   ctx.rotate(theta_t);
@@ -184,11 +167,10 @@ function drawScene(ctx, state) {
   ctx.strokeRect(0, -W / 2, L2, W);
   ctx.restore();
 
-  // trailer rear axle
+  // draw the trailer rear axle
   drawAxle(ctx, x_t, y_t, theta_t, W, "#ffe14d");
 
-  // cabin: square, L x L, extends forward from the
-  // hitch (x_c, y_c) along theta_c.
+  // draw the cabin
   ctx.save();
   ctx.translate(x_c, y_c);
   ctx.rotate(theta_c);
@@ -198,7 +180,7 @@ function drawScene(ctx, state) {
   ctx.fillRect(0, -L / 2, L, L);
   ctx.strokeRect(0, -L / 2, L, L);
 
-  // heading indicator (triangle at the front of the cabin)
+  // depict front of the cabin
   ctx.fillStyle = "#ffffff";
   ctx.beginPath();
   ctx.moveTo(L, 0);
@@ -208,14 +190,29 @@ function drawScene(ctx, state) {
   ctx.fill();
   ctx.restore();
 
-  // cabin rear axle (coincides with the hitch, (x_c, y_c), in this model)
+  // draw the cabin axle
   drawAxle(ctx, 
     x_axle, y_axle, phi + theta_c, L, "#39ff14");
  
-  ctx.restore(); // undo the y-up flip
+  ctx.restore();
 }
 
+// models the geometry and kinematics of the semi-trailer truck
 export default function Truck() {
+  // stores states and controls so i can plot truck path across time period
+//   const trajectoryRef = useRef([{
+//         t: 0,
+//         x_c: INITIAL_X_C,
+//         y_c: INITIAL_Y_C,
+//         theta_c: INITIAL_THETA_C,
+//         x_t: INITIAL_X_T,
+//         y_t: INITIAL_Y_T,
+//         theta_t: INITIAL_THETA_T,
+//         v: 0,
+//         phi: 0,
+//     }]);
+//   const elapsedRef = useRef(0);
+//   const nextPlotTimeRef = useRef(0);
   const canvasRef = useRef(null);
   const keysRef = useRef({ w: false, a: false, d: false });
   const stateRef = useRef({
@@ -232,14 +229,14 @@ export default function Truck() {
 
   const handleKeyDown = useCallback((event) => {
     const key = event.key.toLowerCase();
-    if (key === "w" || key === "a" || key === "d") {
+    if (key === "w" || key === "a" || key === "d" || key === "s") {
       keysRef.current[key] = true;
     }
   }, []);
 
   const handleKeyUp = useCallback((event) => {
     const key = event.key.toLowerCase();
-    if (key === "w" || key === "a" || key === "d") {
+    if (key === "w" || key === "a" || key === "d" || key === "s") {
       keysRef.current[key] = false;
     }
   }, []);
@@ -265,6 +262,32 @@ export default function Truck() {
       let state = applyControls(stateRef.current, keysRef.current, dt);
       state = stepKinematics(state, dt);
       stateRef.current = state;
+
+    //   elapsedRef.current += dt;
+
+    //   if (elapsedRef.current >= nextPlotTimeRef.current) {
+    //     trajectoryRef.current.push({
+    //         t: nextPlotTimeRef.current,
+    //         x_c: state.x_c,
+    //         y_c: state.y_c,
+    //         theta_c: state.theta_c,
+    //         x_t: state.x_t,
+    //         y_t: state.y_t,
+    //         theta_t: state.theta_t,
+    //         v: state.v,
+    //         phi: state.phi * 180 / Math.PI
+    //     });
+
+    //     nextPlotTimeRef.current += 0.5;
+
+        // stop recording after t = 10s
+    //     if (nextPlotTimeRef.current > 10 && trajectoryRef.current != []) {
+    //         generateTrajectoryPNG(trajectoryRef);
+
+    //         trajectoryRef.current = [];
+    //         nextPlotTimeRef.current = Infinity;
+    //     }
+    //   }
 
       drawScene(ctx, state);
       setHud(state);
