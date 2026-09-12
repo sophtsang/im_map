@@ -1,5 +1,7 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState, useLayoutEffect } from "react";
 import { generateTrajectoryPNG } from "./Plot.js";
+import Draggable from "react-draggable";
+import App from '../App';
 
 const L = 40; // L : square cabin length
 const d = 80; // d : dist from rear axle to hitch
@@ -200,6 +202,9 @@ function drawScene(ctx, state) {
 // models the geometry and kinematics of the semi-trailer truck
 export default function Truck() {
   // stores states and controls so i can plot truck path across time period
+  const screenWidth = 84;
+  const [width, setWidth] = useState(0);
+  const [height, setHeight] = useState(0);
 //   const trajectoryRef = useRef([{
 //         t: 0,
 //         x_c: INITIAL_X_C,
@@ -213,6 +218,7 @@ export default function Truck() {
 //     }]);
 //   const elapsedRef = useRef(0);
 //   const nextPlotTimeRef = useRef(0);
+  const containerRef = useRef(null);
   const canvasRef = useRef(null);
   const keysRef = useRef({ w: false, a: false, d: false });
   const stateRef = useRef({
@@ -240,6 +246,29 @@ export default function Truck() {
       keysRef.current[key] = false;
     }
   }, []);
+
+  useLayoutEffect(() => {
+    const updateWidth = () => {
+        if (containerRef.current) {
+            setWidth(containerRef.current.clientWidth);
+            setHeight(containerRef.current.clientHeight);
+        }
+    };
+
+    updateWidth();
+
+    const resizeObserver = new ResizeObserver(updateWidth);
+    if (containerRef.current) {
+        resizeObserver.observe(containerRef.current);
+    }
+
+    window.addEventListener('resize', updateWidth);
+
+    return () => {
+        resizeObserver.disconnect();
+        window.removeEventListener('resize', updateWidth);
+    };
+}, []);
 
   useEffect(() => {
     window.addEventListener("keydown", handleKeyDown);
@@ -300,41 +329,75 @@ export default function Truck() {
   }, []);
 
   return (
-    <div style={{ position: "relative", width: "100vw", height: "100vh", background: "#111" }}>
-      <canvas
-        ref={canvasRef}
-        width={CANVAS_WIDTH}
-        height={CANVAS_HEIGHT}
-        style={{ display: "block", margin: "0 auto", background: "#1b1b1b" }}
-      />
-      <div
-        style={{
-          position: "absolute",
-          top: 12,
-          left: 12,
-          color: "#fff",
-          fontFamily: "monospace",
-          fontSize: 13,
-          lineHeight: 1.6,
-          background: "rgba(0,0,0,0.5)",
-          padding: "8px 12px",
-          borderRadius: 6,
-        }}
-      >
-        <div>W: accelerate&nbsp;&nbsp; A: turn CCW&nbsp;&nbsp; D: turn CW</div>
-        <div>
-          x_c: {hud.x_c.toFixed(1)}&nbsp;&nbsp; y_c: {hud.y_c.toFixed(1)}
+    <App enableUI={false} responsivePopup popup={
+        <Draggable
+            cancel={".draggable-btn"}
+            nodeRef={containerRef}
+            bounds={{ left: 0, top: 0, right: width + 140, bottom: height - 500}}
+        >  
+        <div ref={containerRef} style={{ 
+            width: 1000,
+            padding: 2, 
+            fontFamily: 'Pixelify Sans',
+            position: 'relative',
+            display: 'inline-block'
+        }}>
+            <img 
+                className="lidar_window"
+                src={process.env.PUBLIC_URL + "/assets/window.png"} 
+                style={{
+                    zIndex: 0,
+                    position: 'absolute',
+                    left: (screenWidth / 2 - 67 / 2) * width / screenWidth,
+                    width: width * 67 / screenWidth,
+                    display: 'block'
+                }}
+            />
+
+            <canvas
+                ref={canvasRef}
+                width={width * 57 / screenWidth}
+                height={335}
+                style={{ 
+                    position: "relative", 
+                    display: "block",
+                    top: 9 * width / screenWidth,
+                    left: (screenWidth / 2 - 57.3 / 2) * width / screenWidth,
+                    background: "#1b1b1b" }}
+            />
+            
+        
+            {/* <div
+                style={{
+                position: "absolute",
+                top: 12,
+                left: 12,
+                color: "#fff",
+                fontFamily: "monospace",
+                fontSize: 13,
+                lineHeight: 1.6,
+                background: "rgba(0,0,0,0.5)",
+                padding: "8px 12px",
+                borderRadius: 6,
+                }}
+            >
+                <div>W: accelerate&nbsp;&nbsp; A: turn CCW&nbsp;&nbsp; D: turn CW</div>
+                <div>
+                x_c: {hud.x_c.toFixed(1)}&nbsp;&nbsp; y_c: {hud.y_c.toFixed(1)}
+                </div>
+                <div>
+                theta_c: {hud.theta_c.toFixed(2)} rad&nbsp;&nbsp; theta_t: {hud.theta_t.toFixed(2)} rad
+                </div>
+                <div>
+                x_t: {hud.x_t.toFixed(1)}&nbsp;&nbsp; y_t: {hud.y_t.toFixed(1)}
+                </div>
+                <div>
+                v: {hud.v.toFixed(1)}&nbsp;&nbsp; phi: {hud.phi.toFixed(2)}
+                </div>
+            </div> */}
         </div>
-        <div>
-          theta_c: {hud.theta_c.toFixed(2)} rad&nbsp;&nbsp; theta_t: {hud.theta_t.toFixed(2)} rad
-        </div>
-        <div>
-          x_t: {hud.x_t.toFixed(1)}&nbsp;&nbsp; y_t: {hud.y_t.toFixed(1)}
-        </div>
-        <div>
-          v: {hud.v.toFixed(1)}&nbsp;&nbsp; phi: {hud.phi.toFixed(2)}
-        </div>
-      </div>
-    </div>
+        </Draggable>}
+        animate={false}
+    />
   );
 }
