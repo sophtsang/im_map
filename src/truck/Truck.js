@@ -344,7 +344,7 @@ export default function Truck() {
         }}>
             <img 
                 className="lidar_window"
-                src={process.env.PUBLIC_URL + "/assets/window.png"} 
+                src={process.env.PUBLIC_URL + "/assets/window_ext.png"} 
                 style={{
                     zIndex: 0,
                     position: 'absolute',
@@ -357,7 +357,7 @@ export default function Truck() {
             <canvas
                 ref={canvasRef}
                 width={width * 57 / screenWidth}
-                height={335}
+                height={454}
                 style={{ 
                     position: "relative", 
                     display: "block",
@@ -367,34 +367,24 @@ export default function Truck() {
             />
             
         
-            {/* <div
+            <div
                 style={{
-                position: "absolute",
-                top: 12,
-                left: 12,
-                color: "#fff",
-                fontFamily: "monospace",
-                fontSize: 13,
-                lineHeight: 1.6,
-                background: "rgba(0,0,0,0.5)",
-                padding: "8px 12px",
-                borderRadius: 6,
+                  position: "absolute",
+                  top: 3 * width / screenWidth,
+                  left: (screenWidth / 2 - 50 / 2) * width / screenWidth,
+                  color: "#4C4444",
+                  fontSize: 23,
+                  lineHeight: 1.6,
+                  backgroundColor: 'transparent',
+                  padding: "8px 12px",
+                  borderRadius: 6,
                 }}
             >
-                <div>W: accelerate&nbsp;&nbsp; A: turn CCW&nbsp;&nbsp; D: turn CW</div>
                 <div>
-                x_c: {hud.x_c.toFixed(1)}&nbsp;&nbsp; y_c: {hud.y_c.toFixed(1)}
+                x: {hud.x_c.toFixed(1)},&nbsp;&nbsp; y: {hud.y_c.toFixed(1)},&nbsp;&nbsp;
+                phi: {hud.phi.toFixed(2)},&nbsp;&nbsp;v: {hud.v.toFixed(1)} 
                 </div>
-                <div>
-                theta_c: {hud.theta_c.toFixed(2)} rad&nbsp;&nbsp; theta_t: {hud.theta_t.toFixed(2)} rad
-                </div>
-                <div>
-                x_t: {hud.x_t.toFixed(1)}&nbsp;&nbsp; y_t: {hud.y_t.toFixed(1)}
-                </div>
-                <div>
-                v: {hud.v.toFixed(1)}&nbsp;&nbsp; phi: {hud.phi.toFixed(2)}
-                </div>
-            </div> */}
+            </div>
         </div>
         </Draggable>}
         animate={false}
