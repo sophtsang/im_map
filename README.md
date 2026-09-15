@@ -1,5 +1,6 @@
-# [i'm map?](https://sophtsang.github.io/im_map/)
+# [i'm map?](https://sophtsang.github.io/)
 
+Servus! This is the 2D website hosted as an iframe inside my [3d-rendered portfolio](https://github.com/sophtsang/sophtsang.github.io).
 # über glsl shaders
 On shaders extending ```Pass```: 
 1) we use ```Effects```: implement each custom shader as a child of ```Pass```, multiple passes can be applied akin to linear combination of convoution filters
