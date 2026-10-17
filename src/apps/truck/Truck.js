@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState, useLayoutEffect } from "react";
 import { generateTrajectoryPNG } from "./Plot.js";
 import Draggable from "react-draggable";
-import App from '../App';
+import App from '../../App';
 
 const L = 40; // L : square cabin length
 const d = 80; // d : dist from rear axle to hitch

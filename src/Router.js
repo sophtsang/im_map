@@ -1,9 +1,9 @@
 import { Routes, Route, useNavigate } from "react-router-dom";
 import Lidar from "./Lidar";
-import GetData from "./doppelganger/GetData";
-import Paint from "./painter/Paint";
+import GetData from "./apps/doppelganger/GetData";
+// import Paint from "../ignore/painter/Paint";
 import App from "./App";
-import Truck from "./truck/Truck";
+import Truck from "./apps/truck/Truck";
 
 function Router() {
   const navigate = useNavigate();
@@ -16,9 +16,9 @@ function Router() {
     navigate("/streets");
   };
 
-  const openPaint = () => {
-    navigate("/paint");
-  }
+  // const openPaint = () => {
+  //   navigate("/paint");
+  // }
 
   const handleMarker = (data) => {
     if (data.location_data) {
@@ -29,11 +29,10 @@ function Router() {
   return (
     <Routes>
         <Route path="/im_map" element={<App openDict={
-            {"openVroom": openVroom, "openStreets": openStreets, "openPaint": openPaint}
+            {"openVroom": openVroom, "openStreets": openStreets, "openPaint": openStreets}
           } enableUI={true} animate={true}/>} />
         <Route path="/lidar" element={<Truck />} />
-        {/* <Route path="/truck" element={<Truck />} /> */}
-        <Route path="/paint" element={<Paint />} />
+        {/* <Route path="/paint" element={<Paint />} /> */}
         <Route path="/streets" element={
           <GetData onDataLoaded={handleMarker}/>} />
     </Routes>

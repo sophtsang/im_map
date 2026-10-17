@@ -7,6 +7,12 @@
     <script src="Colmap.js" defer></script>
   </head>
   <body>
+    <script type = "module">
+      import init, { version } from "./kernel-pkg/kernel_wasm.js";
+      init().then(() => {
+        version();
+      });
+    </script>
     <div id="loading_screen">
       <img id="loading_img_0" src="../public/assets/loading0.png" class="loading_img active" alt="Loading 0" />
       <img id="loading_img_1" src="../public/assets/loading1.png" class="loading_img" alt="Loading 1" />

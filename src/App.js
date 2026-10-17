@@ -123,7 +123,7 @@ function App({ openDict, enableUI, popup, animate, responsivePopup } ) {
   }, [compFrame]);
 
   useEffect(() => {
-    document.title = "meow";
+    document.title = "gegangen";
     document.body.style.overflow = "hidden";
   }, []);
 

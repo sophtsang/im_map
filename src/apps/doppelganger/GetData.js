@@ -2,7 +2,7 @@ import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import './GetData.css';
 import Colmap from './Colmap';
 import Draggable from "react-draggable";
-import App from '../App';
+import App from '../../App';
 
 function GetData({ onDataLoaded }) {
     const nodeRef = useRef(null);
@@ -139,15 +139,7 @@ function GetData({ onDataLoaded }) {
                 position: 'relative',
                 display: 'inline-block'
             }}>
-            
-              {/* style={{   width: '100%', */}
-            {/* //                 maxWidth: '100%',
-            //                 boxSizing: 'border-box',
-            //                 padding: 2,
-            //                 background: '#E8E6E5',
-            //                 fontFamily: 'Pixelify Sans'
-            //             }}> */}
-
+    
                 <img 
                     className="lidar_window"
                     src={process.env.PUBLIC_URL + "/assets/window_lidar.png"} 
@@ -160,13 +152,6 @@ function GetData({ onDataLoaded }) {
                     }}
                 />
 
-                {/* <h2 className="street-h2">_'s for the streets</h2> */}
-
-                {/* <div style={{ 
-                    position: 'relative', 
-                    width: '100%', 
-                    maxWidth: '100%', 
-                    height: 'auto' }}> */}
                 <div className="street-h2"
                     style={{ 
                         position: 'relative',
@@ -247,10 +232,6 @@ function GetData({ onDataLoaded }) {
                     </ul>
                     </div>
                 )}
-
-                {/* {!loading && !error && folderNames.length === 0 && directoryPath && (
-                    <p style={{ marginTop: '20px', color: "#948D8D" }}>No folders found in the specified path.</p>
-                )} */}
 
                 <Colmap 
                     onDirectoryChange={{"location": directoryPath, "click": loading || initialLoad }}
