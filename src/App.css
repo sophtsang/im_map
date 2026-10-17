@@ -58,110 +58,25 @@ Stack container equivalent
   margin-bottom: 140px;
 }
 
-/* Homepage wrapper */
-/* .homepage {
-  height: 100%;
-  position: relative;
-} */
-
-/* Computer image */
-/* .computer-img {
-  z-index: 0;
+.popup {
   position: absolute;
-  width: 1520px;
+  z-index: 10;
+  top: 0;
   left: 50%;
   transform: translateX(-50%);
-  object-fit: cover;
-} */
+  width: max-content; /* size to the app inside, not the screen */
+}
 
-/* Transparent overlay */
-/* .overlay {
-  position: absolute;
-  top: 20%;
-  left: 20%;
-  width: 60%;
-  height: 60%;
-  background: transparent;
-  z-index: 10;
-} */
+.popup-tabbar {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-family: 'Pixelify Sans';
+}
 
-/* Draggable wrapper */
-/* .draggable {
-  position: absolute;
-  cursor: pointer;
-} */
-
-/* Buttons inside draggable */
-/* .draggable-btn {
-  background: none;
-  border: none;
-  position: absolute;
-  z-index: 2;
-  cursor: pointer;
-  transition: transform 0.2s ease-in-out;
-} */
 
 .draggable-btn.drag-active button {
   pointer-events: none;
 }
 
-/* .control-btn:hover {
-  transform: scale(1.1); 
-} */
-
-/* Taxi button specific position */
-/* .taxi-btn:hover {
-  transform: scale(1.1); 
-  background: rgba(255, 255, 255, 0.25); 
-  box-shadow: 0 2px 2px rgba(0,0,0,0.5);
-  transition: transform 0.2s ease-in-out;
-} */
-
-/* Racecar button specific position */
-/* .racecar-btn:hover {
-  transform: scale(1.1); 
-  background: rgba(255, 255, 255, 0.25); 
-  box-shadow: 0 2px 2px rgba(0,0,0,0.5);
-  transition: transform 0.2s ease-in-out;
-} */
-
-/* Icon images */
-/* .icon-img {
-  position: relative;
-  width: 159.5px;
-  height: auto;
-  transition: transform 0.2s ease-in-out;
-} */
-
-/* .icon-img:hover {
-  transform: scale(1.1);
-  background: rgba(255, 255, 255, 0.1);
-  box-shadow: 0 2px 2px rgba(0,0,0,0.5);
-} */
-
-/* Hover popups */
-/* .dg-hover-img {
-  position: absolute;
-  top: 60.1px;
-  left: calc(50% - 628.7px);
-  height: 109.5px;
-  pointer-events: none;
-  z-index: 1;
-} */
-
-/* .lidar-hover-img {
-  position: absolute;
-  top: 60.1px;
-  left: calc(50% - 359px);
-  height: 109.5px;
-  pointer-events: none;
-  z-index: 2;
-} */
-
-
-/* Drag handle */
-/* .drag-handle {
-  cursor: move;
-  padding: 10px;
-  background: #4C4444;
-} */

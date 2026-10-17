@@ -3,7 +3,6 @@ import * as THREE from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import { PLYLoader } from 'three/examples/jsm/loaders/PLYLoader'
 import Switch from '@mui/material/Switch'
-import Grid from '@mui/material/Grid';
 import FormControlLabel from '@mui/material/FormControlLabel';
 import Slider from '@mui/material/Slider'
 import Stack from '@mui/material/Stack'
@@ -11,9 +10,6 @@ import NoPhotographyIcon from '@mui/icons-material/NoPhotography';
 import CameraAltIcon from '@mui/icons-material/CameraAlt';
 import StopIcon from '@mui/icons-material/Stop';
 import SquareIcon from '@mui/icons-material/Square';
-import TextField from '@mui/material/TextField';
-import Autocomplete from '@mui/material/Autocomplete';
-import Draggable from "react-draggable";
 
 import './Colmap.css'
 

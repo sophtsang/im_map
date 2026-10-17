@@ -6,7 +6,7 @@ import Slider from '@mui/material/Slider'
 import StopIcon from '@mui/icons-material/Stop';
 import SquareIcon from '@mui/icons-material/Square';
 import { io } from "socket.io-client";
-import './doppelganger/Colmap.css'
+import './apps/doppelganger/Colmap.css'
 import App from "./App";
 
 const socket = io('http://localhost:5000');

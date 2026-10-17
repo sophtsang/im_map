@@ -1,11 +1,8 @@
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import './GetData.css';
 import Colmap from './Colmap';
-import Draggable from "react-draggable";
-import App from '../../App';
 
 function GetData({ onDataLoaded }) {
-    const nodeRef = useRef(null);
     const [directoryPath, setDirectoryPath] = useState('Alexander_Nevsky_Cathedral,_Sofia');
     const [folderNames, setFolderNames] = useState([]);
     const [error, setError] = useState(null);
@@ -125,12 +122,12 @@ function GetData({ onDataLoaded }) {
     };
 
     return (
-        <App enableUI={false} responsivePopup popup={
-            <Draggable
-                cancel={".draggable-btn"}
-                nodeRef={containerRef}
-                bounds={{ left: 0, top: 0, right: width + 140, bottom: height - 500}}
-            >       
+        // <App enableUI={false} responsivePopup popup={
+        //     <Draggable
+        //         cancel={".draggable-btn"}
+        //         nodeRef={containerRef}
+        //         bounds={{ left: 0, top: 0, right: width + 140, bottom: height - 500}}
+        //     >       
                           
             <div ref={containerRef} style={{   
                 width: 1000,
@@ -239,9 +236,9 @@ function GetData({ onDataLoaded }) {
                 />
 
             </div>
-            </Draggable>}
-            animate={false}
-        />
+            // </Draggable>}
+            // animate={false}
+        // />
 
     );
 }

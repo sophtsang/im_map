@@ -4,6 +4,7 @@ import './App.css';
 import Draggable from "react-draggable";
 import Stack from '@mui/material/Stack'
 import { kernel, version } from './kernel';
+import registry from './apps/Registry'
 
 function App({ openDict, enableUI, popup, animate, responsivePopup } ) {
   const taxiWidth = 16;
@@ -11,6 +12,9 @@ function App({ openDict, enableUI, popup, animate, responsivePopup } ) {
   const lidarBannerWidth = 41;
   const dopplBannerWidth = 59;
   const screenWidth = 84;
+  const ppid = 1;
+
+  const [processes, setProcesses] = useState(kernel.ps());
   
   const nodeRef = useRef(null);
   const screenRef = useRef(null);
@@ -39,6 +43,23 @@ function App({ openDict, enableUI, popup, animate, responsivePopup } ) {
   const handlePopupDrag = (event, data) => {
     setPopupPos({ x: data.x, y: data.y });
   };
+
+  function open(entry) {
+    // App.js is process pid 1: init/desktop
+      kernel.spawn(ppid, entry);
+      // updated vec<&Pcb> from ps
+      setProcesses(kernel.ps())
+  }
+
+  function close(pid) {
+      // ways to clean up zombies: 
+      // either by any other process (check zombies before returning to RUNNING)
+      // by parent when it waits for it, here App.js parent will reap its children apps
+      // this is the initial process, so supposedly will never die before child
+      kernel.kill(pid);
+      kernel.wait(ppid, pid);
+      setProcesses(kernel.ps()) // update active processes
+  }
 
   function useWindowSize() {
       const [windowSize, setWindowSize] = useState({
@@ -144,11 +165,11 @@ function App({ openDict, enableUI, popup, animate, responsivePopup } ) {
         <div className="computer screen"
             ref={screenRef}
             style={{
-                position: 'relative'
+                position: 'relative',
+                width: '100%' // windows (.popup) center against this
             }}
         >
           <img 
-            // src={process.env.PUBLIC_URL + `/assets/computer${compFrame}.png`}
             src={process.env.PUBLIC_URL + `/assets/computer_screen.png`}
             alt="computer" 
             className="w-full h-full object-cover rounded-xl shadow-lg" 
@@ -173,7 +194,7 @@ function App({ openDict, enableUI, popup, animate, responsivePopup } ) {
               >
                 <button 
                   className={`draggable-btn ${dragEnabled ? "drag-active" : ""}`}
-                  onDoubleClick={openDict["openStreets"]}
+                  onDoubleClick={() => open("streets")}
                   onMouseEnter={() => setDGHover(true)}
                   onMouseLeave={() => setDGHover(false)}
                   style={{
@@ -224,7 +245,8 @@ function App({ openDict, enableUI, popup, animate, responsivePopup } ) {
                   ref={nodeRef}
               >
                 <button className={`draggable-btn ${dragEnabled ? "drag-active" : ""}`}
-                        onDoubleClick={openDict["openVroom"]} 
+                        // onDoubleClick={openDict["openVroom"]} 
+                        onDoubleClick={() => open("truck")}
                         onMouseEnter={() => setLidarHover(true)}
                         onMouseLeave={() => setLidarHover(false)}
                         style={{
@@ -360,13 +382,28 @@ function App({ openDict, enableUI, popup, animate, responsivePopup } ) {
                 If users were in a project popup (not App), then exiting returns to home page (App)
                 If users exit out of "About Me" popup, they can access app links to projects, or reopen "About Me"
                 by clicking profile icon (not implemented yet).*/}
-          {popup != undefined && (<div className="popup browser"
+          {/* {popup != undefined && (<div className="popup browser"
               ref={nodeRef}
               style={responsivePopup ? { width: popupWidth, maxWidth: '100%', boxSizing: 'border-box' } : undefined}
             >
-              {/* popup content (not draggable) */}
               <div className="popup content">{popup}</div>
-            </div>)}
+            </div>)} */}
+
+          {processes
+            .filter(p => registry[p.entry] && p.state !== "Finished")
+            .map(p => {
+              const Program = registry[p.entry].component;
+              return (
+                <div key={p.pid} className="popup">
+                  <div className = "popup-tabbar">
+                    Process {registry[p.entry].name} (pid : {p.pid})
+                    <button onClick={() => close(p.pid)}>x</button>
+                  </div>
+                  <div className="popup-content"><Program /></div>
+                </div> 
+              )
+            })
+          }
         </div>
       </Stack>
       
