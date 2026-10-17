@@ -3,6 +3,7 @@ import { Navigate, useNavigate } from "react-router-dom";
 import './App.css';
 import Draggable from "react-draggable";
 import Stack from '@mui/material/Stack'
+import { kernel, version } from './kernel';
 
 function App({ openDict, enableUI, popup, animate, responsivePopup } ) {
   const taxiWidth = 16;
@@ -129,6 +130,8 @@ function App({ openDict, enableUI, popup, animate, responsivePopup } ) {
 
   return (
     <div className="App">
+      <div className="kernel-version">{version()}</div>
+
 
       <Stack 
         direction="row"
@@ -364,11 +367,9 @@ function App({ openDict, enableUI, popup, animate, responsivePopup } ) {
               {/* popup content (not draggable) */}
               <div className="popup content">{popup}</div>
             </div>)}
-
         </div>
-
       </Stack>
-
+      
     </div>
   );
 }
