@@ -12,6 +12,7 @@ pub enum ProcessEvent {
     Kill
 }
 
+#[derive(serde::Serialize)]
 pub enum ProcessState {
     Runnable,
     Waiting,
@@ -19,6 +20,7 @@ pub enum ProcessState {
     Finished
 }
 // simulates on process + its PCB
+#[derive(serde::Serialize)]
 pub struct Pcb {
     pid : Pid, // imagine process table is a hashmap, and pid is the key, value is exectuable
     ppid : Pid, // pid of parent process, forms a connected componentish union find tree
@@ -30,7 +32,7 @@ pub struct Pcb {
 
 impl Pcb {
     // a new process has been spawned, init the PCB, which basiaclly represents the process
-    fn new(pid : Pid, ppid : Pid, entry : String) -> Self {
+    pub fn new(pid : Pid, ppid : Pid, entry : String) -> Self {
         // add to RunQueue
         Self { 
             pid : pid,
@@ -50,6 +52,7 @@ impl Pcb {
             (ProcessState::Waiting,  ProcessEvent::BlockDone) => ProcessState::Runnable,
             (ProcessState::Running,  ProcessEvent::Exit(exit_code)) => { 
                 self.exit_code = Some(exit_code);
+                // only way to be in Finished state ist if process already has exit_code
                 ProcessState::Finished
             },
             (ProcessState::Finished, ProcessEvent::Kill) => return Err(KernelError::IllegalTransition),
