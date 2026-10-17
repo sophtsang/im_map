@@ -10,6 +10,12 @@ On implementing ```_fragmentShader.glsl```:
 2) ```originalTexture``` is the original texture if no passes were applied
 3) a shader is akin to a filter that will be applied to each pixel of a texture, for .glsl, ```gl_FragCoord.xy``` is the ```(x, y)``` coordinate of the pixel currently being processed by GLSL
 4) ```FullScreenQuad``` creates a rectangle covering the entire render target, then the GPU rasterizes the quad into fragments, and the fragment shader is run once for each fragment / pixel
+5) compute variance: Var(X) = E(X^2) - [E(X)]^2
+
+# goals
+compact desktop sim + model an OS
+- have a minishell in the sim that can open up applications
+- have project pages as applications that can run as processes
 
 # old
 
