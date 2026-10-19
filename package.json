@@ -34,7 +34,10 @@
     "start": "react-scripts start",
     "build": "react-scripts build",
     "test": "react-scripts test",
-    "eject": "react-scripts eject"
+    "eject": "react-scripts eject",
+    "build:kernel": "cd os && wasm-pack build kernel-wasm --target web --out-dir ../../src/kernel-pkg",
+    "prestart": "npm run build:kernel",
+    "prebuild": "npm run build:kernel"
   },
   "eslintConfig": {
     "extends": [

@@ -30,3 +30,8 @@ doppelgangers
 
 src/die.py
 src/die.py
+src/app.py
+api/app.py
+/ignore
+
+/os/target/
