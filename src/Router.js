@@ -28,7 +28,7 @@ function Router() {
 
   return (
     <Routes>
-        <Route path="/im_map" element={<App openDict={
+        <Route path="/kernel_bsod" element={<App openDict={
             {"openVroom": openVroom, "openStreets": openStreets, "openPaint": openStreets}
           } enableUI={true} animate={true}/>} />
         <Route path="/lidar" element={<Truck />} />

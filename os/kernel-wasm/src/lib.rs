@@ -3,7 +3,7 @@ use kernel::process::table::ProcessTable;
 
 #[wasm_bindgen]
 pub fn version() -> String {
-    "im_map kernel 0.1.0".into()
+    "kernel_bsod 0.1.0".into()
 }
 
 #[wasm_bindgen]
