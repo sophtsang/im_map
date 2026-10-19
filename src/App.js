@@ -1,10 +1,13 @@
 import { useState, useEffect, useLayoutEffect, useRef  } from 'react';
 import { Navigate, useNavigate } from "react-router-dom";
+import { useReducer } from 'react';
 import './App.css';
 import Draggable from "react-draggable";
 import Stack from '@mui/material/Stack'
 import { kernel, version } from './kernel';
 import registry from './apps/Registry'
+import { initialWM, wmReducer } from './desktop/WindowManager'
+// import { layout } from './dwindle';
 
 function App({ openDict, enableUI, popup, animate, responsivePopup } ) {
   const taxiWidth = 16;
@@ -13,8 +16,6 @@ function App({ openDict, enableUI, popup, animate, responsivePopup } ) {
   const dopplBannerWidth = 59;
   const screenWidth = 84;
   const ppid = 1;
-
-  const [processes, setProcesses] = useState(kernel.ps());
   
   const nodeRef = useRef(null);
   const screenRef = useRef(null);
@@ -29,6 +30,30 @@ function App({ openDict, enableUI, popup, animate, responsivePopup } ) {
   const {width, height} = useWindowSize();
   const [scale, setScale] = useState(window.innerWidth / 1520);
   const [dragEnabled, setDragEnabled] = useState(false);
+
+  // kernel
+  const [processes, setProcesses] = useState(kernel.ps());
+  // window manager
+  const [wm, dispatch] = useReducer(wmReducer, initialWM);
+
+  useEffect(() => {
+    for (const p of processes) {
+      const app = registry[p.entry];
+      // new process opened
+      if (app && p.state !== "Finished" && wm.windows[p.pid] === undefined) {
+          dispatch({ 
+              type: "OPEN", pid: p.pid, entry: p.entry, 
+              mode: app.mode ? "floating" : "tiled", 
+              floatRect: { x: 40 + 24 * p.pid, y: 40 + 24 * p.pid, w: app.size?.w, h: app.size?.h },
+          })
+      };
+    }
+    for (const key in wm.windows)  {
+      const pid = Number(key);
+      const alive = processes.some(p => p.pid === pid && p.state !== "Finished");
+      if (! alive) dispatch({type: "CLOSED", pid: pid})
+    }
+  }, [processes]); // if processes change -> run this, so processes will have events
 
   // Only used when `responsivePopup` is set (currently just the streets/
   // Colmap+GetData widget) — keeps that popup's own width, centering, and
@@ -284,57 +309,6 @@ function App({ openDict, enableUI, popup, animate, responsivePopup } ) {
               </div>
             </Draggable>
 
-            {/* <Draggable 
-              cancel={dragEnabled ? "" : ".draggable-btn"}
-              nodeRef={nodeRef}
-              bounds={{ 
-                left: - (raceCarWidth + 2) * (width / screenWidth), 
-                top: 0, 
-                right: width - (raceCarWidth + 26) * (width / screenWidth), 
-                bottom: width - (raceCarWidth + 34) * (width / screenWidth) }}
-            >       
-              <div className="draggable-btn"
-                  ref={nodeRef}
-              >
-                <button className={`draggable-btn ${dragEnabled ? "drag-active" : ""}`}
-                        onDoubleClick={openDict["openPaint"]} 
-                        onMouseEnter={() => setPaintHover(true)}
-                        onMouseLeave={() => setPaintHover(false)}
-                        style={{
-                          background: 'none',
-                          border: 'none',
-                          zIndex: 3,
-                          position: 'absolute',
-                          top: 4 * (width / screenWidth),
-                          left: 21 * (width / screenWidth)
-                        }}
-                >
-                  <img 
-                    src={process.env.PUBLIC_URL + "/assets/racecar.png"} 
-                    alt="paint" 
-                    className="paint-btn"
-                    style={{
-                      width: width * raceCarWidth / screenWidth
-                    }}
-                  />
-                </button>
-
-                {paintHover && (<img 
-                  src={process.env.PUBLIC_URL + "/assets/lidar.png"} 
-                  alt="_'s for the streets" 
-                  className="w-16 h-16 transition-transform"
-                  style={{
-                    position: 'absolute',
-                    top: -5 * (width / screenWidth),
-                    left: 9 * (width / screenWidth),
-                    width: width * lidarBannerWidth / screenWidth,
-                    pointerEvents: 'none',
-                    zIndex: 1
-                  }}
-                />)}
-              </div>
-            </Draggable> */}
-
             <button className="control-btn"
                 onClick={handleCtrl} 
                 style={{
@@ -373,21 +347,6 @@ function App({ openDict, enableUI, popup, animate, responsivePopup } ) {
                 
           </div>)}
 
-          {/* Projects in the portfolio will be displayed like popup browsers that are draggable.
-              Projects are linked to separate pages, and [popup] = returned components in draggable widget format. 
-              IDEAS:
-              - When on the home page, which is App component: an "About Me" popup will appear.
-              - All popups, when in minimal mode, are Draggable within the pixel computer's screen boundaries.
-              - Users are given the option to expand popups to full screen, or exit out of popups:
-                If users were in a project popup (not App), then exiting returns to home page (App)
-                If users exit out of "About Me" popup, they can access app links to projects, or reopen "About Me"
-                by clicking profile icon (not implemented yet).*/}
-          {/* {popup != undefined && (<div className="popup browser"
-              ref={nodeRef}
-              style={responsivePopup ? { width: popupWidth, maxWidth: '100%', boxSizing: 'border-box' } : undefined}
-            >
-              <div className="popup content">{popup}</div>
-            </div>)} */}
 
           {processes
             .filter(p => registry[p.entry] && p.state !== "Finished")
