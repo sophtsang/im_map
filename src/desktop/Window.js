@@ -8,7 +8,7 @@ export default function Window({ win, rect, zIndex, focused, dispatch, onClose }
 
   return (
     <div
-      className={`wm-window ${win.mode} ${focused ? "focused" : ""}`}
+      className={`wm-window ${win.mode} ${focused ? "focused" : "bsod"}`} // replace "bsod" with ""
       // clicking anywhere in the window raises + focuses it
       onMouseDown={() => dispatch({ type: "FOCUS", pid: win.pid })}
       style={{

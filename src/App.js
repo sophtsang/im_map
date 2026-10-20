@@ -53,7 +53,8 @@ function App({ openDict, enableUI, popup, animate, responsivePopup } ) {
           })
           if (mode === "tiled") {
             try {
-              tiler.insert(focused, p.pid);
+              tiler.insert(focused, p.pid); // here eventually we want to be able to modify screen sizes: so focus on a window
+                // then ratio = i.e. for Horizontal, normalized x-position of drag cursos in screenWidth
               focused = p.pid;
             } catch (e) {
               console.warn(`tiler: couldn't insert ${p.pid}:`, e);

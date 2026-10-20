@@ -26,6 +26,13 @@
     width: max-content;
 }
 
+.wm-window.bsod {
+    background-color: #0078d7;
+    display: flex;
+    align-items:center;
+    box-sizing: border-box;
+}
+
 .wm-tabbar {
     display: flex;
     justify-content: space-between;

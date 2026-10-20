@@ -86,9 +86,12 @@ impl DwindleNode {
     // returns true if rpid was found and removed somewhere in this subtree
     fn remove(&mut self, rpid: Pid) -> bool {
         let DwindleNode::Split { first, second, .. } = self else {
+            // we directly look at the children of the split nodes
             return false;
         };
+        // first: Box(DwindleNode) -> *first = DwindleNode -> **first = pid if Leaf
         if let DwindleNode::Leaf(pid) = **first && pid == rpid {
+            // first is removed, second replaces the split node
             *self = std::mem::replace(second.as_mut(), DwindleNode::Leaf(0));
             return true;
         }
@@ -145,6 +148,10 @@ impl DwindleTree {
     }
 
     pub fn insert(&mut self, fpid: Option<Pid>, npid: Pid, ratio: Option<f32>) -> Result<(), WindowError> {
+        if fpid == npid {
+            return Err(WindowError::DuplicateProcess(pid));
+        }
+        
         let ratio = ratio.unwrap_or(0.5);
         if matches!(self.root, DwindleNode::Empty) {
             self.root = DwindleNode::new(npid); // new window, should take up entire screen

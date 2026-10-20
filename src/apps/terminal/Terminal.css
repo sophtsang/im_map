@@ -1,0 +1,35 @@
+.terminal-window {
+    text-align: left;
+    color: white;
+    padding: 0 10%;
+}
+
+.bsod {
+    gap: 0.5rem;
+    align-items: flex-start;
+    text-align: left;
+}
+
+.bsod-header {
+    font-size: 8rem;
+    max-width: 70%;
+}
+
+.bsod-text {
+    font-size: 1.75rem;
+    margin-bottom: 1.25rem;
+    max-width: 70%;
+}
+
+.bsod-progress {
+    font-size: 2rem;
+    margin-bottom: 1.25rem;
+    max-width: 70%;
+}
+
+.bsod-information {
+    font-size: 0.85rem;
+    max-width: 70%;
+}
+
+/* .terminal- */
