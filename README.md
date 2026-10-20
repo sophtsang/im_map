@@ -1,132 +1,95 @@
-# [i'm map?](https://sophtsang.github.io/)
+# Kernel::BSOD: OS Simulator
+_:( Blue screen of death!_
+## Proposed Layers (High- to Low-Level):
+1) [Physical Computer](#1-physical-computer): _Working_
+2) [Desktop Environment](#2-desktop-environment): _In Progress_
+3) [OS Kernel](#3-simulated-os-kernel): _In Progress_
+4) [Application Runtime](#4-application-runtime): _In Progress_
+5) [Host Platform](#5-host-platform): _Working_
 
-Servus! This is the 2D website hosted as an iframe inside my [3D-rendered portfolio](https://github.com/sophtsang/sophtsang.github.io).
-# über glsl shaders
-On shaders extending ```Pass```: 
-1) we use ```Effects```: implement each custom shader as a child of ```Pass```, multiple passes can be applied akin to linear combination of convoution filters
-2) to extend ```Pass```, each shader class implements a _fragmentShader.glsl that is used to define ```this.material = new THREE.ShaderMaterial(_fragmentShader.glsl)```
+## _1:_ Physical Computer
+A Three.js scene with a modeled monitor that renders the desktop as an ```iframe```.
 
-On implementing ```_fragmentShader.glsl```:
-1) ```inputBuffer``` is the texture result of the previous pass
-2) ```originalTexture``` is the original texture if no passes were applied
-3) a shader is akin to a filter that will be applied to each pixel of a texture, for .glsl, ```gl_FragCoord.xy``` is the ```(x, y)``` coordinate of the pixel currently being processed by GLSL
-4) ```FullScreenQuad``` creates a rectangle covering the entire render target, then the GPU rasterizes the quad into fragments, and the fragment shader is run once for each fragment / pixel
-5) compute variance: Var(X) = E(X^2) - [E(X)]^2
+### Future Graphics Projects:
+1) CRT shaders.
+2) Moebius art style shaders.
 
-# goals
-compact desktop sim + model an OS
-- have a minishell in the sim that can open up applications
-- have project pages as applications that can run as processes
+This is mostly frontend and is done in JS, React and Three.js.
 
-# old
+## _2:_ Desktop Environment
+I guess the frontend display of the desktop environment will still be in Javascript, includes how windows are actually drawn from the Binary Space Partioning Window Manager (BSPWM). _This is inspired by Hyprland's Dwindle dynamic tiler._
 
-Visualizer for the Google Maps Street View panorama dataset curated for [MegaScenes](https://megascenes.github.io/) text annotation evaluation. 
+Compile Rust to WebAssembly with ```wasm-bindgen``` or ```wasm-pack``` to have it run static on GitHub Pages.
 
-# _'s for the streets
+### Contents:
+1) What the user sees is a desktop with draggable windows, a file system (optional, or a later task), a minishell (I want this to work like the taskbar, where it can start applications, modify file system information, ..., more on this in Minishell section), and process controls.
+2) The installable application are displayed as draggable windows, and will mainly be the way I represent my project pages, visualizations, and demos in this portfolio.
 
-Rendering of the Structure-from-Motion (SfM) pipeline that takes in multiview internet images of visually disambiguous scenes across the globe and outputs a dense, robust 3D reconstruction.
+```wasm-pack``` is a tool that allows for building JS packages in Rust. This also enables the use of Rust in an existing JavaScript frontend.
 
-Given visually disambigous scenes, this pipeline curates a Google Maps Street View panorama dataset capturing the diverse facades of such scene from different camera viewing directions and locations. 
+For program simulation, not going to convert ```.js``` files to binary executables and then processes. Where the loader should map code executable into memory, we will have JS look up ```entry``` in a registry to mount corresponding component in a window. Kernel will read the manifest, create a PCB and return a pid.
 
-To prepare the curated Google Maps Street View panorama dataset for integration with COLMAP, run:
+### Window Manager
+The way an OS draws windows on the screen depends on display protocol.
 
-```
-source activate maps_env
+**Dynamic tiling**: places new windows autonomatically based on a layout algorithm. This window manager models after ```Hyprland's Dwindle``` tiling logic to decide where a new window goes and what shape it takes. 
+Dwindle follows a BSPWN-like binary tree layout, where every window on the workspace is part of a hierarchically split tree. Each new window splits the current container either horizontally or vertically.
+We will implement a BSP (binary space partioning) tree for tiling.
 
-python prepare_colmap.py ${LOCATION} to_streetview
+**```wmReducer```**: we will have ```action``` be a JS object that describes something that happened in the window manager, i.e. a window was opened with ```pid```, ```entry```, etc. as a result of user event.
+When the kernel creates a process, something dispatches ```OPEN```. ```useReducer(wmReducer, initialWM)``` gives the current ```state``` and ```dispatch``` function. Whatever ```wmReducer(currentState, action)``` returns will be the new ```curentState```.
 
-source deactivate
+For ```OPEN```, ```wmReducer``` returns a copy of ```currentState```, with new ```window``` being appended to the map of all existing ```windows```, new ```focused``` process being that of the newly spawned ```action.pid```, and next z-index being incremented by one.
 
-cp -r /share/phoenix/nfs06/S9/yx642/renamed_megascenes_images/${LOCATION}/images/* matches/wikimedia/${LOCATION}
+## _3:_ Simulated OS Kernel
+This is the backend project I want to start working on, now that the frontend desktop environment and 3D computer shell already exists in ```kernel_bsod``` and ```sophtsang.github.io```, respectively.
 
-cp -r matches/wikimedia/${LOCATION}/* matches/st_wiki_combined/${LOCATION}
-cp -r matches/streetview/${LOCATION}/* matches/st_wiki_combined/${LOCATION}
-```
+### Contents:
+1) The first steps are to build a small process manager and scheduler that models concepts found in a real OS.
+2) Should have a simple process manager, scheduler, memory accounting, IPC, and virtual filesystem.
+3) _Process management_: every app instance is a process and should have a process control block or equivalent data struction containing its execution state and metadata. This is implemented [here](/os/kernel/src/process/).
+4) _Scheduling algorithm_: for now, lets just have FIFO. Eventually, might be interesting to have more sophisticated priority scheduling and context switching. Or [preemptive scheduler](https://www.cs.cornell.edu/courses/cs4410/2011fa/CS4411/projects/project2/project2.pdf).
+5) _Virtual filesystem_: doesn't have to be anything too complex right now, something like an ```applications/``` directory that contains ```projects/, terminal/, task_manager/```? IndexedDB could help.
+6) _IPC_: applications interact through OS-like APIs rather than reaching into each other's internal state. Focus on this later? Have like a task manager that displays all currently running processes.
 
-As per the classical SfM pipeline, exhaustive matches between images of the combined Wikimedia Commons and Google Maps Street View panorama dataset are found using SIFT feature descriptor correspondences:
+### Process Abstraction
+**Process control block (PCB)**: for each process, the OS has a PCB containing:
+1) Location in memory (page table)
+2) Location of executable (the manifest) on disk (registry): entry-executable mapping stored in [Registry.js](/src/apps/Registry.js)
+3) Which user is executing this process (uid)
+4) Process identifier (pid), will be returned
+5) Process status (running, waiting, finished, etc.)
+6) Scheduling information
+7) Kernel stack
+8) Saved user SP
+9) Saved kernel SP
 
-```
-colmap feature_extractor \
-    --database_path colmap_workspace/${LOCATION}/database.db \
-    --image_path matches/st_wiki_combined/${LOCATION} \
-    --SiftExtraction.use_gpu 1
+**Process lifecycle**: model this as an [FSM](/os/kernel/src/process/mod.rs/)
+1) Init: initialize the PCB
+2) Runnable: process' PCB enqueued to RunQueue
+    - If dispatch: goto Running
+    - If blocking call (read, wait): goto Waiting
+3) Waiting: process' PCB on WaitingQueue
+    - If blocking call done: goto Runnable
+4) Running: PCB dequeued from RunQueue, currently running
+    - If yield: goto Runnable
+    - If done (exit): goto Finished
+5) Finished: PCB on FinishedQueue, process = zombie, ultimately deleted when dequeued
 
-colmap exhaustive_matcher \
-    --database_path colmap_workspace/${LOCATION}/database.db \
-    --SiftMatching.use_gpu 1
-```
+### Organization of OS Kernel Implementation
+All active processes are on the [Process Table](/os/kernel/src/process/table.rs). The "compile" order in which the kernel is implemented in Rust and made available in JS is as follows:
+1) [os/kernel/src/process/](/os/kernel/src/process/) contains implementation of individal process, represented by PCB in [mod.rs](/os/kernel/src/process/mod.rs) and process table in [table.rs](/os/kernel/src/process/table.rs), which operates on all active processes
+2) ```wasm``` converts Rust implementation to JS in [lib.rs](os/kernel-wasm/src/lib.rs)
+3) [kernel.js](/src/kernel.js) contains the JS version of the Rust OS kernel, where ```kernel = new Kernel()``` represents the process table managing all active processes in the virtual desktop environment. ```kernel``` can be accessed via import from ```./kernel```, and is initialized when the entire environment was initially booted
+    - To reiterate, ```kernel``` in [App.js](/src/App.js) is an instance of [table.rs](/os/kernel/src/process/table.rs)'s ```ProcessTable``` struct
+    - _Note:_ Booting and render order is defined in [index.js](/src/index.js)
 
-COLMAP's ```exhaustive_matcher``` results in a scene graph consisting of many incorrectly matched images that capture visually similar but distinct surfaces (aka, doppelgangers). The result of keeping these doppelganger matches when running COLMAP's ```mapper``` function is often a 3D reconstruction that contains collapsed structures and incorrect geometry.
+## _4:_ Application Runtime
+Determines how the apps are actually executed: handles app lifecycle, event delivery, app isolation, game loops, and rendering.
 
-![Alt text](public/results/alexander_nevsky_cathedral,_sofia.png)
+Simulate preemption, the Rust kernel cannot interrupt JS, but it can stop scheduling an app that went over its time budget. Rust decides app lifecycles.
 
-In this pipeline, we prune edges containing doppelganger matches from the scene graph returned by ```exhaustive_matcher``` by having Google Gemini API act as a doppelganger filter. Each panorama in the Google Maps Street View dataset contains a ground truth heading, relative to true North. Given a scene, for every Wikimedia Commons image and its matches produced by ```exhaustive_matcher```, we have Gemini API return only the Google Maps Street View images that accurately depict the same facade captured by the Wikimedia Commons image. To provide an accurate heading, camera location, and camera viewing direction relative to the scene for each Wikimedia Commons image, Google Maps Street View images returned by Gemini API are constrained within some range of headings. 
+## _5:_ Host Platform
+Everything is hosted in the browser via Git Pages, I think.
 
-The weighted average of headings, where number of feature matches from COLMAP act as weights, of the remaining Google Maps Street View images are used to give the corresponding Wikimedia Commons image a camera location, camera viewing direction, and GPS-based prior position. Finally, only other Wikimedia Commons images already matched by COLMAP and taken at approximately "nearby" camera location and viewing direction are kept as "true matches":
 
-```
-python get_matches.py ${LOCATION} filter_matches
-
-python filter_doppelgangers.py ${LOCATION}
-
-python prepare_colmap.py ${LOCATION} get_gps_prior
-
-python get_matches.py ${LOCATION} prune_matches
-```
-
-After doppelganger and other incorrect matches are pruned, COLMAP's ```pose_prior_mapper``` is run on the remaining matches to produce a 3D reconstruction of the given scene. Then COLMAP's ```model_aligner``` using the GPS-based prior positions of the Wikimedia Commons and Google Maps Street View panorama dataset is run to scale the 3D reconstruction up to its real-world scale:
-
-```
-colmap pose_prior_mapper \
-    --database_path colmap_workspace/${LOCATION}/database.db \
-    --image_path matches/st_wiki_combined/${LOCATION} \
-    --output_path colmap_workspace/${LOCATION}/sparse/pruned_prior
-
-colmap model_aligner \
-    --input_path colmap_workspace/${LOCATION}/sparse/pruned_prior \
-    --output_path colmap_workspace/${LOCATION}/sparse/scaled \
-    --ref_images_path colmap_workspace/${LOCATION}/georegistered.txt \
-    --ref_is_gps 0 \
-    --alignment_type enu \
-    --robust_alignment_max_error 3.0
-```
-
-# stitch post-processing
-This pipeline may result in an overpruned scene graph that produces several split COLMAP reconstructions for each facade.
-The gameplan:
-Align and scale to world dimension the largest, densest model (we assume the result to be ground truth reference).
-Use ICP to align other sparser models. Assume that Street View images are used in these sparser models, which we can then use 
-as references.
-
-Global coordinate system is defined by ENU coordinates from the Google Street View GPS lat-lon-alts, where the center lat-lon-alt of the scene defined in geocoded_dataset_0-1000.json acts as the origin in this ENU coordinate system.
-The result of pruned COLMAP mapper is a mostly disjoint set of 3D reconstructions of each facade of a scene, each in their own local coordinate system and scale. To merge all facade reconstructions into one full world-scale model, we use _ to transform each facade reconstruction from its local coordinate system to the global ENU-defined coordinate system, using Street View images, their quaternions and translations, as the reference points for computing the similarity transform.
-
-This is under the assumption that each facade reconstruction is structurally correct, and differs from its world-dimension reconstruction by only a translation, rotation, and scale (all linear transformations).
-Assume camera intrinsics are accurate.
-
-y is South, x is West 
-
-x is North, y is East ** for now
-
-## Asides: 
-Prior to running the 3D reconstruction pipeline for a given location, the directory should look like: 
-
-```
-<user>/doppelgangers-plusplus/
-├── matches/
-│   ├── st_wiki_combined/<location>  
-│   ├── streetview/<location>           
-│   └── wikimedia/<location>               
-└── colmap_workspace/         
-    └── <location>/
-        ├── database.db 
-        ├── sparse/          
-        └── matches.csv 
-```
-
-To run the COLMAP GUI: ```LIBGL_ALWAYS_SOFTWARE=1 colmap gui```
-
-I have the COLMAP and ground truth points for Street View, I can get the PCA of both and align upright.
-Then use ICP with fixed rotation matrix to get scale and translation. 
-
-upright vector of ground truth points is perpendicular to xy plane.
