@@ -1,6 +1,7 @@
 use wasm_bindgen::prelude::*;
 use kernel::process::table::ProcessTable;
 use wm::dwindle::DwindleTree;
+use wm::dwindle::Rectangle;
 
 #[wasm_bindgen]
 pub fn version() -> String {
@@ -22,15 +23,6 @@ impl Kernel {
 }
 
 #[wasm_bindgen]
-pub struct Rectangle { x: f32, y: f32, w: f32, h: f32 }
-
-#[wasm_bindgen]
-impl Rectangle {
-    #[wasm_bindgen(constructor)]
-    pub fn new(x: f32, y: f32, w: f32, h: f32) -> Rectangle { Rectangle { x: x, y: y, w: w, h: h} }
-}
-
-#[wasm_bindgen]
 pub struct Tiler { tiler: DwindleTree }
 
 #[wasm_bindgen]
@@ -43,5 +35,8 @@ impl Tiler {
     pub fn remove(&mut self, pid: u32) -> Result<(), JsError> {
         Ok(self.tiler.remove(pid)?)
     }
-    pub fn layout(&self, window: )
+    pub fn layout(&self, window: JsValue) -> Result<JsValue, JsError> { 
+        let window: Rectangle = serde_wasm_bindgen::from_value(window)?;
+        Ok(serde_wasm_bindgen::to_value(&self.tiler.layout(window))?)
+    }
 }

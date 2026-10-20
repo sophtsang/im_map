@@ -22,7 +22,7 @@ impl Direction {
     }
 }
 
-#[derive(Debug, Clone, Copy, PartialEq)]
+#[derive(Debug, Clone, Copy, PartialEq, serde::Serialize, serde::Deserialize)]
 pub struct Rectangle {
     pub x: f32, pub y: f32, 
     pub w: f32, pub h: f32
