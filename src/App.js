@@ -4,10 +4,10 @@ import { useReducer } from 'react';
 import './App.css';
 import Draggable from "react-draggable";
 import Stack from '@mui/material/Stack'
-import { kernel, version } from './kernel';
+import { kernel, tiler, version } from './kernel';
 import registry from './apps/Registry'
 import { initialWM, wmReducer } from './desktop/WindowManager'
-// import { layout } from './dwindle';
+import Layout from './desktop/Layout'
 
 function App({ openDict, enableUI, popup, animate, responsivePopup } ) {
   const taxiWidth = 16;
@@ -15,6 +15,7 @@ function App({ openDict, enableUI, popup, animate, responsivePopup } ) {
   const lidarBannerWidth = 41;
   const dopplBannerWidth = 59;
   const screenWidth = 84;
+  const screenHeight = 59;
   const ppid = 1;
   
   const nodeRef = useRef(null);
@@ -37,21 +38,42 @@ function App({ openDict, enableUI, popup, animate, responsivePopup } ) {
   const [wm, dispatch] = useReducer(wmReducer, initialWM);
 
   useEffect(() => {
+    // the window new tiled windows split from: only a visible tiled window is in the tiler,
+    // so a floating/minimized focus means no split target (tiler splits the whole screen)
+    const fwin = wm.windows[wm.focused];
+    let focused = fwin && fwin.mode === "tiled" && !fwin.minimized ? fwin.pid : undefined;
     for (const p of processes) {
       const app = registry[p.entry];
-      // new process opened
+      // new process opened and new window spawned, keep wm and tiler in sync
       if (app && p.state !== "Finished" && wm.windows[p.pid] === undefined) {
-          dispatch({ 
-              type: "OPEN", pid: p.pid, entry: p.entry, 
-              mode: app.mode ? "floating" : "tiled", 
+          const mode = app.mode ?? "tiled";
+          dispatch({
+              type: "OPEN", pid: p.pid, entry: p.entry, mode,
               floatRect: { x: 40 + 24 * p.pid, y: 40 + 24 * p.pid, w: app.size?.w, h: app.size?.h },
           })
-      };
+          if (mode === "tiled") {
+            try {
+              tiler.insert(focused, p.pid);
+              focused = p.pid;
+            } catch (e) {
+              console.warn(`tiler: couldn't insert ${p.pid}:`, e);
+            }
+          }
+      }
     }
     for (const key in wm.windows)  {
       const pid = Number(key);
       const alive = processes.some(p => p.pid === pid && p.state !== "Finished");
-      if (! alive) dispatch({type: "CLOSED", pid: pid})
+      if (! alive) {
+        dispatch({type: "CLOSED", pid: pid})
+        if (wm.windows[pid].mode === "tiled") {
+          try {
+            tiler.remove(pid);
+          } catch (e) {
+            console.warn(`tiler: couldn't remove ${pid}:`, e);
+          }
+        }
+      }
     }
   }, [processes]); // if processes change -> run this, so processes will have events
 
@@ -151,6 +173,20 @@ function App({ openDict, enableUI, popup, animate, responsivePopup } ) {
 
     return () => {
       window.removeEventListener("keydown", handleEsc);
+    };
+  }, []);
+
+  useEffect(() => {
+    const handleCAT = (event) => {
+      if (event.ctrlKey && event.altKey && event.code === "KeyT") {
+        open("terminal")
+      }
+    };
+
+    window.addEventListener("keydown", handleCAT);
+
+    return () => {
+      window.removeEventListener("keydown", handleCAT);
     };
   }, []);
 
@@ -347,22 +383,17 @@ function App({ openDict, enableUI, popup, animate, responsivePopup } ) {
                 
           </div>)}
 
-
-          {processes
-            .filter(p => registry[p.entry] && p.state !== "Finished")
-            .map(p => {
-              const Program = registry[p.entry].component;
-              return (
-                <div key={p.pid} className="popup">
-                  <div className = "popup-tabbar">
-                    Process {registry[p.entry].name} (pid : {p.pid})
-                    <button onClick={() => close(p.pid)}>x</button>
-                  </div>
-                  <div className="popup-content"><Program /></div>
-                </div> 
-              )
-            })
-          }
+          <Layout
+            wm={wm}
+            dispatch={dispatch}
+            // TODO: calibrate to the monitor's screen region in computer_screen.png
+            area={{ 
+              x: width * 5 / screenWidth, 
+              y: width * 5 / screenWidth, 
+              w: width * (screenWidth - 10) / screenWidth, 
+              h: width * (screenHeight - 10) / screenWidth}}
+            onClose={close}
+          />
         </div>
       </Stack>
       

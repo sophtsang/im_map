@@ -5,7 +5,7 @@ use wm::dwindle::Rectangle;
 
 #[wasm_bindgen]
 pub fn version() -> String {
-    "kernel_bsod 0.1.0".into()
+    "kernel_bsod 0.1.0, CTRL + ALT + T to terminal".into()
 }
 
 #[wasm_bindgen]

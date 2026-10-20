@@ -1,0 +1,52 @@
+/* covers the desktop area; lets clicks through to the icons underneath
+   except where a window actually is */
+.wm-layer {
+    position: absolute;
+    z-index: 20;
+    pointer-events: none;
+}
+
+.wm-window {
+    position: absolute;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    pointer-events: auto;
+    background-color: #282c34;
+    color: white;
+    border: 2px solid #555;
+}
+
+.wm-window.focused {
+    border-color: #ccc;
+}
+
+/* floating windows without a size (e.g. truck) shrink to their app */
+.wm-window.floating {
+    width: max-content;
+}
+
+.wm-tabbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-family: 'Pixelify Sans';
+    padding: 0 4px;
+}
+
+.wm-content {
+    flex: 1;
+    overflow: auto;
+}
+
+/* floating apps (truck, streets) draw their own window art as an absolutely
+   positioned image that hangs past their container, so don't clip it,
+   and don't draw a frame over it */
+.wm-window.floating {
+    background-color: transparent;
+    border: none;
+}
+
+.wm-window.floating .wm-content {
+    overflow: visible;
+}
