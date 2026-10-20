@@ -1,5 +1,5 @@
 # Kernel::BSOD: OS Simulator
-_[:( Blue screen of death!](sophtsang.github.io)_
+_[:( Blue screen of death!](https://sophtsang.github.io)_
 ## Proposed Layers (High- to Low-Level):
 1) [Physical Computer](#1-physical-computer): _Working_
 2) [Desktop Environment](#2-desktop-environment): _In Progress_

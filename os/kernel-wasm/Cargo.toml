@@ -9,5 +9,6 @@ crate-type = ["cdylib", "rlib"]
 [dependencies]
 kernel = { path = "../kernel" }
 shell = { path = "../shell" }
+wm = { path = "../wm" }
 wasm-bindgen = "0.2"
 serde-wasm-bindgen = "0.6"
