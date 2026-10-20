@@ -148,7 +148,7 @@ impl DwindleTree {
     }
 
     pub fn insert(&mut self, fpid: Option<Pid>, npid: Pid, ratio: Option<f32>) -> Result<(), WindowError> {
-        if fpid == npid {
+        if let Some(pid) = fpid && pid == npid {
             return Err(WindowError::DuplicateProcess(pid));
         }
         

@@ -13,7 +13,7 @@ impl fmt::Display for WindowError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
             WindowError::NoSuchWindow(pid) => write!(f, "({pid}) - no such window"),
-            WindowError:DuplicateProcess(pid) => write!(f, "({pid}) - process already exists")
+            WindowError::DuplicateProcess(pid) => write!(f, "({pid}) - process already exists")
         }
     }
 }
