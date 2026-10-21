@@ -28,11 +28,8 @@ function Router() {
 
   return (
     <Routes>
-        <Route path="/kernel_bsod" element={<App openDict={
-            {"openVroom": openVroom, "openStreets": openStreets, "openPaint": openStreets}
-          } enableUI={true} animate={true}/>} />
+        <Route path="/kernel_bsod" element={<App enableUI={true} animate={true}/>} />
         <Route path="/lidar" element={<Truck />} />
-        {/* <Route path="/paint" element={<Paint />} /> */}
         <Route path="/streets" element={
           <GetData onDataLoaded={handleMarker}/>} />
     </Routes>

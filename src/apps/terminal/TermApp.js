@@ -4,22 +4,19 @@ import { useState } from 'react';
 export default function TermApp({nodeRef, open, dragEnabled, screenWidth, width}) {
     const termWidth = 16;
     const termBannerWidth = 41;
-
     const [termHover, setTermHover] = useState(false);
 
     return (<Draggable 
                 cancel={dragEnabled ? "" : ".draggable-btn"}
                 nodeRef={nodeRef}
                 bounds={{ 
-                    left: - (termWidth + 2) * (width / screenWidth), 
-                    top: - (termWidth - 2) * (width / screenWidth), 
-                    right: width - (termWidth + 8) * (width / screenWidth), 
-                    bottom: width - (termWidth + 48) * (width / screenWidth) 
+                    left: 0, 
+                    top: -(termWidth) * (width / screenWidth), 
+                    right: width - (termWidth + 6.5) * (width / screenWidth), 
+                    bottom: width - (termWidth + 45) * (width / screenWidth) 
                 }}
             >        
-                <div className="draggable-btn"
-                    ref={nodeRef}
-                >
+                <div className="draggable-btn" ref={nodeRef}>
                     <button className={`draggable-btn ${dragEnabled ? "drag-active" : ""}`}
                         onDoubleClick={() => open("terminal")}
                         onMouseEnter={() => setTermHover(true)}
@@ -27,7 +24,7 @@ export default function TermApp({nodeRef, open, dragEnabled, screenWidth, width}
                         style={{
                             background: 'none',
                             border: 'none',
-                            zIndex: 3,
+                            zIndex: 2,
                             position: 'absolute',
                             top: 18 * (width / screenWidth),
                             left: 3 * (width / screenWidth)
@@ -53,7 +50,7 @@ export default function TermApp({nodeRef, open, dragEnabled, screenWidth, width}
                     left: -9 * (width / screenWidth),
                     width: width * termBannerWidth / screenWidth,
                     pointerEvents: 'none',
-                    zIndex: 20
+                    zIndex: 3
                   }}
                 />)}
             </div>
