@@ -16,7 +16,7 @@ export default function Terminal() {
           -100% complete
         </div>
         <div className="bsod-information">
-          For more information about this issue and possible fixes, visit our website.
+          For more information about this issue and possible fixes, enter CTRL + ALT + T.
         </div>
       </Stack>
     </div>

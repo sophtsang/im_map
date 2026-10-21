@@ -30,10 +30,12 @@ export default function Layout({ wm, dispatch, area, onClose }) {
         if (win.minimized) return null;
 
         let rect, zIndex;
+        let gap = 9;
         if (win.mode === "tiled") { // so like if tiled then plae according to x, y, w, h
           rect = tiles.get(win.pid);
           // tiled but not in the tree: an insert failed, nowhere to put it
-          if (rect === undefined) return null;
+          if (rect === undefined) { return null; }
+          else { rect = {x: rect.x + gap / 2, y: rect.y + gap / 2, w: rect.w - gap, h: rect.h - gap }}
           zIndex = TILED_Z + win.z;
         } else {
           rect = win.floatRect;

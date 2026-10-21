@@ -20,7 +20,7 @@ export default function Window({ win, rect, zIndex, focused, dispatch, onClose }
       }}
     >
       <div className="wm-tabbar">
-        {app.name} (pid : {win.pid})
+        {/* {app.name} (pid : {win.pid}) */}
         <button
           // don't let the close click also dispatch FOCUS on a dying window
           onMouseDown={(e) => e.stopPropagation()}

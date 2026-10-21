@@ -8,6 +8,7 @@ import { kernel, tiler, version } from './kernel';
 import registry from './apps/Registry'
 import { initialWM, wmReducer } from './desktop/WindowManager'
 import Layout from './desktop/Layout'
+import TermApp from './apps/terminal/TermApp'
 
 function App({ openDict, enableUI, popup, animate, responsivePopup } ) {
   const taxiWidth = 16;
@@ -163,19 +164,19 @@ function App({ openDict, enableUI, popup, animate, responsivePopup } ) {
     }
   }, [responsivePopup, width]);
 
-  useEffect(() => {
-    const handleEsc = (event) => {
-      if (event.key === "Escape") {
-        navigate("/kernel_bsod");
-      }
-    };
+  // useEffect(() => {
+  //   const handleEsc = (event) => {
+  //     if (event.key === "Escape") {
+  //       navigate("/kernel_bsod");
+  //     }
+  //   };
 
-    window.addEventListener("keydown", handleEsc);
+  //   window.addEventListener("keydown", handleEsc);
 
-    return () => {
-      window.removeEventListener("keydown", handleEsc);
-    };
-  }, []);
+  //   return () => {
+  //     window.removeEventListener("keydown", handleEsc);
+  //   };
+  // }, []);
 
   useEffect(() => {
     const handleCAT = (event) => {
@@ -213,9 +214,6 @@ function App({ openDict, enableUI, popup, animate, responsivePopup } ) {
 
   return (
     <div className="App">
-      <div className="kernel-version">{version()}</div>
-
-
       <Stack 
         direction="row"
         sx={{ 
@@ -307,7 +305,6 @@ function App({ openDict, enableUI, popup, animate, responsivePopup } ) {
                   ref={nodeRef}
               >
                 <button className={`draggable-btn ${dragEnabled ? "drag-active" : ""}`}
-                        // onDoubleClick={openDict["openVroom"]} 
                         onDoubleClick={() => open("truck")}
                         onMouseEnter={() => setLidarHover(true)}
                         onMouseLeave={() => setLidarHover(false)}
@@ -346,6 +343,8 @@ function App({ openDict, enableUI, popup, animate, responsivePopup } ) {
               </div>
             </Draggable>
 
+            <TermApp nodeRef={nodeRef} open={open} dragEnabled={dragEnabled} screenWidth={screenWidth} width={width} />
+
             <button className="control-btn"
                 onClick={handleCtrl} 
                 style={{
@@ -378,7 +377,6 @@ function App({ openDict, enableUI, popup, animate, responsivePopup } ) {
                   }}
                 />)
               }
-
               
             </button>
                 
