@@ -35,6 +35,10 @@ impl Tiler {
     pub fn remove(&mut self, pid: u32) -> Result<(), JsError> {
         Ok(self.tiler.remove(pid)?)
     }
+    pub fn resize(&mut self, apid: u32, bpid: u32, cx: f32, cy: f32, window: JsValue) -> Result<(), JsError> {
+        let window: Rectangle = serde_wasm_bindgen::from_value(window)?;
+        Ok(self.tiler.resize(apid, bpid, cx, cy, window)?)
+    }
     pub fn layout(&self, window: JsValue) -> Result<JsValue, JsError> { 
         let window: Rectangle = serde_wasm_bindgen::from_value(window)?;
         Ok(serde_wasm_bindgen::to_value(&self.tiler.layout(window))?)

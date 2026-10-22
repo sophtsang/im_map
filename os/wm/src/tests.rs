@@ -238,3 +238,100 @@ fn tiles_cover_screen_exactly() {
         assert!(r.x + r.w <= 100.0 + 1e-3 && r.y + r.h <= 100.0 + 1e-3, "pid {pid} runs off-screen: {r:?}");
     }
 }
+
+// ---- resize ----
+
+#[test]
+fn resize_border_against_subtree() {
+    // 1 | (2 / 3): the 1|2 border is the root split, even though 2's parent is the 2/3 split
+    let mut tree = three_windows();
+    tree.resize(1, 2, 70.0, 25.0, SCREEN).unwrap();
+    let layout = tree.layout(SCREEN);
+    assert_rect(rect_of(&layout, 1), 0.0, 0.0, 70.0, 100.0);
+    assert_rect(rect_of(&layout, 2), 70.0, 0.0, 30.0, 50.0);
+    assert_rect(rect_of(&layout, 3), 70.0, 50.0, 30.0, 50.0);
+}
+
+#[test]
+fn resize_ignores_pair_order_and_which_neighbor() {
+    // (1,2), (2,1) and (1,3) all share the root split, so they move the same border
+    let expected = {
+        let mut tree = three_windows();
+        tree.resize(1, 2, 70.0, 25.0, SCREEN).unwrap();
+        tree.layout(SCREEN)
+    };
+    for (a, b) in [(2, 1), (1, 3), (3, 1)] {
+        let mut tree = three_windows();
+        tree.resize(a, b, 70.0, 75.0, SCREEN).unwrap();
+        let layout = tree.layout(SCREEN);
+        for pid in [1, 2, 3] {
+            let r = rect_of(&expected, pid);
+            assert_rect(rect_of(&layout, pid), r.x, r.y, r.w, r.h);
+        }
+    }
+}
+
+#[test]
+fn resize_deeper_split_leaves_others_alone() {
+    let mut tree = three_windows();
+    tree.resize(2, 3, 75.0, 80.0, SCREEN).unwrap();
+    let layout = tree.layout(SCREEN);
+    assert_rect(rect_of(&layout, 1), 0.0, 0.0, 50.0, 100.0);
+    assert_rect(rect_of(&layout, 2), 50.0, 0.0, 50.0, 80.0);
+    assert_rect(rect_of(&layout, 3), 50.0, 80.0, 50.0, 20.0);
+}
+
+#[test]
+fn resize_deeper_split_uses_its_own_area() {
+    // after shrinking the right column, the 2/3 ratio is relative to that column,
+    // and a resize inside it still follows the cursor exactly
+    let mut tree = three_windows();
+    tree.resize(1, 2, 20.0, 50.0, SCREEN).unwrap();
+    tree.resize(2, 3, 60.0, 30.0, SCREEN).unwrap();
+    let layout = tree.layout(SCREEN);
+    assert_rect(rect_of(&layout, 2), 20.0, 0.0, 80.0, 30.0);
+    assert_rect(rect_of(&layout, 3), 20.0, 30.0, 80.0, 70.0);
+}
+
+#[test]
+fn resize_clamps_ratio() {
+    let mut tree = three_windows();
+    tree.resize(1, 2, 150.0, 50.0, SCREEN).unwrap();
+    assert_rect(rect_of(&tree.layout(SCREEN), 1), 0.0, 0.0, 90.0, 100.0);
+    tree.resize(1, 2, -20.0, 50.0, SCREEN).unwrap();
+    assert_rect(rect_of(&tree.layout(SCREEN), 1), 0.0, 0.0, 10.0, 100.0);
+}
+
+#[test]
+fn resize_same_window_fails() {
+    let mut tree = three_windows();
+    assert_eq!(tree.resize(2, 2, 50.0, 50.0, SCREEN), Err(WindowError::SameWindow(2)));
+}
+
+#[test]
+fn resize_missing_window_fails() {
+    let mut tree = three_windows();
+    assert_eq!(tree.resize(1, 99, 50.0, 50.0, SCREEN), Err(WindowError::NoSuchWindow(99)));
+    assert_eq!(tree.resize(99, 1, 50.0, 50.0, SCREEN), Err(WindowError::NoSuchWindow(99)));
+}
+
+#[test]
+fn resize_single_or_empty_tree_fails() {
+    let mut tree = DwindleTree::new();
+    assert_eq!(tree.resize(1, 2, 50.0, 50.0, SCREEN), Err(WindowError::NoSuchWindow(1)));
+    tree.insert(None, 1, None).unwrap();
+    assert_eq!(tree.resize(1, 2, 50.0, 50.0, SCREEN), Err(WindowError::NoSuchWindow(2)));
+    // the lone window is untouched
+    assert_rect(rect_of(&tree.layout(SCREEN), 1), 0.0, 0.0, 100.0, 100.0);
+}
+
+// ---- duplicates ----
+
+#[test]
+fn insert_existing_pid_fails() {
+    let mut tree = three_windows();
+    assert_eq!(tree.insert(Some(1), 2, None), Err(WindowError::DuplicateProcess(2)));
+    assert_eq!(tree.insert(None, 3, None), Err(WindowError::DuplicateProcess(3)));
+    // tree is unchanged
+    assert_eq!(tree.layout(SCREEN).len(), 3);
+}

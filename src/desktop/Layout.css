@@ -47,7 +47,7 @@
 .wm-tabbar button {
     border: None;
     background: None;
-    font-size: 1.5rem;
+    font-size: 1.75rem;
     color: white;
     font-family: 'Pixelify Sans';
     margin-right: auto;
@@ -79,4 +79,24 @@
 
 .wm-window.floating .wm-content {
     overflow: visible;
+}
+
+/* invisible strips over the gaps between tiles */
+.wm-handle {
+    position: absolute;
+    pointer-events: auto;
+}
+
+.wm-handle.col {
+    cursor: col-resize;
+}
+
+.wm-handle.row {
+    cursor: row-resize;
+}
+
+/* while dragging, keep app content (canvases, pdfs, iframes) from eating the mouse */
+.wm-layer.dragging .wm-window {
+    pointer-events: none;
+    user-select: none;
 }

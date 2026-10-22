@@ -82,6 +82,63 @@ impl DwindleNode {
         }
     }
 
+    fn contains(&self, fpid: Pid) -> bool {
+        match self {
+            DwindleNode::Empty => return false,
+            DwindleNode::Leaf(pid) => return *pid == fpid,
+            DwindleNode::Split{first, second, ..} => {
+                return first.contains(fpid) || second.contains(fpid)
+            }
+        }
+    }
+
+    fn resize(&mut self, a: Pid, b: Pid, cx: f32, cy: f32, window: Rectangle) -> bool {
+        let DwindleNode::Split { first, second, dir, ratio } = self else {
+            // we directly look at the children of the split nodes
+            return false;
+        };
+        let r = *ratio;
+        let rectangles = match dir {
+            Direction::Horizontal => {
+                // first is left, (x, y) is top left corner
+                vec![Rectangle{
+                    x: window.x, y: window.y,
+                    w: window.w * r, h: window.h
+                }, Rectangle{
+                    x: window.x + window.w * r, y: window.y,
+                    w: window.w * (1.0 - r), h: window.h
+                }]
+            }
+            Direction::Vertical => {
+                // first is top
+                vec![Rectangle{
+                    x: window.x, y: window.y,
+                    w: window.w, h: window.h * r
+                }, Rectangle{
+                    x: window.x, y: window.y + window.h * r,
+                    w: window.w, h: window.h * (1.0 - r)
+                }]
+            }
+        };
+        let a_in_first = first.contains(a);
+        let b_in_first = first.contains(b);
+        // unless we have found the split, either a and b both in first, or neither
+        if a_in_first && b_in_first {
+            return first.resize(a, b, cx, cy, rectangles[0])
+        } 
+        else if !a_in_first && !b_in_first {
+            return second.resize(a, b, cx, cy, rectangles[1])
+        } 
+        else {
+            // we are at the split
+            *ratio = (match dir {
+                Direction::Vertical => (cy - window.y) / window.h,
+                Direction::Horizontal => (cx - window.x) / window.w
+            }).clamp(0.1, 0.9);
+            return true
+        }
+    }
+
     // search for node to remove w/ pid
     // returns true if rpid was found and removed somewhere in this subtree
     fn remove(&mut self, rpid: Pid) -> bool {
@@ -148,8 +205,8 @@ impl DwindleTree {
     }
 
     pub fn insert(&mut self, fpid: Option<Pid>, npid: Pid, ratio: Option<f32>) -> Result<(), WindowError> {
-        if let Some(pid) = fpid && pid == npid {
-            return Err(WindowError::DuplicateProcess(pid));
+        if self.root.contains(npid) {
+            return Err(WindowError::DuplicateProcess(npid));
         }
         
         let ratio = ratio.unwrap_or(0.5);
@@ -172,6 +229,21 @@ impl DwindleTree {
                 second: Box::new(DwindleNode::Leaf(npid))
             };
             Ok(())
+        }
+    }
+
+    pub fn resize(&mut self, apid: Pid, bpid: Pid, cx: f32, cy: f32, window: Rectangle) -> Result<(), WindowError> {
+        // dragging a border between two windows is equivalent to dragging 
+        // the Split node
+        // ratio = (cursor.y - rect.y) / rect.h
+        // these checks also cover the empty tree and a lone window: neither can
+        // contain two different pids, so the walk below always finds a split
+        if apid == bpid { return Err(WindowError::SameWindow(apid)) }
+        if !self.root.contains(apid) { return Err(WindowError::NoSuchWindow(apid)) }
+        if !self.root.contains(bpid) { return Err(WindowError::NoSuchWindow(bpid)) }
+        match self.root.resize(apid, bpid, cx, cy, window) {
+            true => Ok(()),
+            false => Err(WindowError::NoSuchWindow(apid))
         }
     }
 
