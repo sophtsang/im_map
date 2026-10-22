@@ -88,11 +88,11 @@
 }
 
 .wm-handle.col {
-    cursor: col-resize;
+    cursor: col-resize !important;
 }
 
 .wm-handle.row {
-    cursor: row-resize;
+    cursor: row-resize !important;
 }
 
 /* while dragging, keep app content (canvases, pdfs, iframes) from eating the mouse */

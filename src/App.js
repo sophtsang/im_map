@@ -12,6 +12,7 @@ import TermApp from './apps/terminal/TermApp'
 import TruckApp from './apps/truck/TruckApp'
 import DopplApp from './apps/doppelganger/DopplApp'
 import ResumeApp from './apps/resume/ResumeApp'
+import Cursor from './cursor/Cursor';
 
 function App({ enableUI, animate } ) {
   const dragBannerWidth = 35;
@@ -152,6 +153,7 @@ function App({ enableUI, animate } ) {
 
   return (
     <div className="App">
+      <Cursor width={width} screenWidth={screenWidth} />
       <Stack 
         direction="row"
         sx={{ 
