@@ -59,6 +59,7 @@
     margin: 0 5px 5px 0;
     scrollbar-color: #593f4c transparent;
     scrollbar-width: thin;
+    scrollbar-gutter: stable;
 }
 
 .wm-window.bsod .wm-content{

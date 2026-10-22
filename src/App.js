@@ -11,6 +11,7 @@ import Layout from './desktop/Layout'
 import TermApp from './apps/terminal/TermApp'
 import TruckApp from './apps/truck/TruckApp'
 import DopplApp from './apps/doppelganger/DopplApp'
+import ResumeApp from './apps/resume/ResumeApp'
 
 function App({ enableUI, animate } ) {
   const dragBannerWidth = 35;
@@ -183,7 +184,8 @@ function App({ enableUI, animate } ) {
             <DopplApp nodeRef={nodeRef} open={open} dragEnabled={dragEnabled} screenWidth={screenWidth} width={width} />
             <TruckApp nodeRef={nodeRef} open={open} dragEnabled={dragEnabled} screenWidth={screenWidth} width={width} />
             <TermApp nodeRef={nodeRef} open={open} dragEnabled={dragEnabled} screenWidth={screenWidth} width={width} />
-              
+            <ResumeApp nodeRef={nodeRef} open={open} dragEnabled={dragEnabled} screenWidth={screenWidth} width={width} />
+            
             <button className="control-btn"
                 onClick={handleCtrl} 
                 onMouseEnter={() => setDragHover(true)}
