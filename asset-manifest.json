@@ -1,19 +1,19 @@
 {
   "files": {
-    "main.css": "/kernel_bsod/static/css/main.cdf0b339.css",
-    "main.js": "/kernel_bsod/static/js/main.fb4d6333.js",
+    "main.css": "/kernel_bsod/static/css/main.81c049eb.css",
+    "main.js": "/kernel_bsod/static/js/main.c2793cf3.js",
     "static/js/453.f870fdc7.chunk.js": "/kernel_bsod/static/js/453.f870fdc7.chunk.js",
     "static/media/LanaPixel.ttf": "/kernel_bsod/static/media/LanaPixel.c78a96d7b4df9f0ef609.ttf",
     "static/media/PressStart2P-Regular.ttf": "/kernel_bsod/static/media/PressStart2P-Regular.21503c6a5385ab41dde9.ttf",
     "static/media/kernel_wasm_bg.wasm": "/kernel_bsod/static/media/kernel_wasm_bg.5fb4bb16ca9bc834933b.wasm",
     "static/media/PixelifySans-VariableFont_wght.ttf": "/kernel_bsod/static/media/PixelifySans-VariableFont_wght.010a030857ba699e8717.ttf",
     "index.html": "/kernel_bsod/index.html",
-    "main.cdf0b339.css.map": "/kernel_bsod/static/css/main.cdf0b339.css.map",
-    "main.fb4d6333.js.map": "/kernel_bsod/static/js/main.fb4d6333.js.map",
+    "main.81c049eb.css.map": "/kernel_bsod/static/css/main.81c049eb.css.map",
+    "main.c2793cf3.js.map": "/kernel_bsod/static/js/main.c2793cf3.js.map",
     "453.f870fdc7.chunk.js.map": "/kernel_bsod/static/js/453.f870fdc7.chunk.js.map"
   },
   "entrypoints": [
-    "static/css/main.cdf0b339.css",
-    "static/js/main.fb4d6333.js"
+    "static/css/main.81c049eb.css",
+    "static/js/main.c2793cf3.js"
   ]
 }
